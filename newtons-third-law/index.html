@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Newton's Third Law – Practice Quiz</title>
+<style>
+  :root { --bg:#f4f6fb; --card:#fff; --ink:#1d2433; --muted:#5b6475; --accent:#2f6fed; --good:#1f9d55; --bad:#d64545; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); line-height:1.5; }
+  main { max-width:680px; margin:0 auto; padding:20px 16px 40px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 16px; font-size:.95rem; }
+  .bar { height:8px; background:#dde3ef; border-radius:4px; overflow:hidden; margin-bottom:16px; }
+  .bar > div { height:100%; width:0; background:var(--accent); transition:width .3s; }
+  .card { background:var(--card); border-radius:14px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+  .qnum { color:var(--muted); font-size:.85rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .q { font-size:1.15rem; font-weight:600; margin:6px 0 16px; }
+  .opt { display:block; width:100%; text-align:left; padding:14px 16px; margin:0 0 10px; font-size:1rem; border:2px solid #d5dbe7; border-radius:10px; background:#fff; color:var(--ink); cursor:pointer; min-height:48px; }
+  .opt:hover:not(:disabled) { border-color:var(--accent); }
+  .opt:disabled { cursor:default; }
+  .opt.correct { border-color:var(--good); background:#e8f7ee; }
+  .opt.wrong { border-color:var(--bad); background:#fdeaea; }
+  .fb { margin-top:6px; padding:12px 14px; border-radius:10px; font-size:.97rem; display:none; }
+  .fb.good { display:block; background:#e8f7ee; border-left:4px solid var(--good); }
+  .fb.bad { display:block; background:#fdeaea; border-left:4px solid var(--bad); }
+  .btn { display:inline-block; margin-top:16px; padding:12px 22px; font-size:1rem; font-weight:600; border:none; border-radius:10px; background:var(--accent); color:#fff; cursor:pointer; min-height:48px; }
+  .btn[hidden] { display:none; }
+  .score { font-size:2.4rem; font-weight:700; margin:8px 0; }
+  .review { margin-top:16px; padding-left:20px; }
+  .review li { margin-bottom:8px; }
+  .ok { color:var(--good); font-weight:600; } .no { color:var(--bad); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Newton's Third Law: Action and Reaction</h1>
+  <p class="sub">15 questions · Pick an answer to see if you're right and why.</p>
+  <div class="bar"><div id="progress"></div></div>
+  <div class="card" id="quiz"></div>
+</main>
+<script>
+const QUESTIONS = [
+  { q: "A bat hits a baseball, pushing it to the right. What is the reaction force?",
+    o: ["The bat",
+        "The ball pushes the bat to the left",
+        "The bat pushes the ball to the right",
+        "The ball flies away from the bat"],
+    a: 1,
+    e: "A force is always 'something pushes something' with a direction. To find the reaction, swap the two nouns and flip the direction: the bat pushes the ball right, so the ball pushes the bat left. 'The bat' alone names an object, not a force." },
+  { q: "A man pushes a stalled car forward. What is the reaction force?",
+    o: ["The car pushes the man backward",
+        "The car",
+        "The car rolls forward",
+        "The man's muscles push the man forward"],
+    a: 0,
+    e: "Swap the nouns and flip the direction: the man pushes the car forward, so the car pushes the man backward with the same size force. 'The car rolls forward' describes motion, not a force." },
+  { q: "A bus hits a bug. What is the reaction force?",
+    o: ["The bus",
+        "The bus hits the bug harder",
+        "The bug's guts splatter",
+        "The bug hits (pushes on) the bus"],
+    a: 3,
+    e: "Bus hits bug, so bug hits bus. The bug pushes forward on the bus's windshield with exactly the same size force that the bus pushes back on the bug." },
+  { q: "An athlete throws a medicine ball by pushing it forward. Which statement correctly describes the reaction force?",
+    o: ["The ball accelerates away from the athlete",
+        "Gravity pulls the ball down",
+        "The ball pushes the athlete backward",
+        "The floor pushes the athlete up"],
+    a: 2,
+    e: "The reaction to 'athlete pushes ball forward' is 'ball pushes athlete backward.' The ball accelerating is a result of the force, not the reaction force. Gravity and the floor are separate interactions involving other objects." },
+  { q: "When you walk, your foot pushes backward on the floor. What is the reaction force?",
+    o: ["Gravity pulls your foot down",
+        "The floor pushes your foot forward",
+        "Your other foot pushes forward",
+        "The floor pushes your foot backward"],
+    a: 1,
+    e: "Foot pushes floor backward, so floor pushes foot forward. That forward push from the floor is what actually moves you ahead when you walk." },
+  { q: "Which pair is a correct action–reaction pair for a foot kicking a ball?",
+    o: ["Foot pushes ball forward; ball pushes foot backward",
+        "Foot pushes ball forward; ball moves forward",
+        "Foot hits ball; ball hits the goal",
+        "Foot pushes ball forward; gravity pulls ball down"],
+    a: 0,
+    e: "Both forces in a pair come from the same two objects, just reversed: foot on ball, ball on foot. They're equal in size and opposite in direction." },
+  { q: "You sit in a chair, and Earth pulls down on your body with gravity. What is the reaction to Earth's pull?",
+    o: ["The chair pushes up on your body",
+        "Your body pushes down on the chair",
+        "Your body pulls up on Earth with gravity",
+        "The air pushes up on your body"],
+    a: 2,
+    e: "The pair to 'Earth pulls you down' is 'you pull Earth up,' and both are gravity. The chair pushing up on you is a different interaction (you and the chair). It balances gravity, but it isn't gravity's reaction force." },
+  { q: "Earth pulls down on Shirley with a 600 N gravitational force. Which describes the reaction force?",
+    o: ["The chair pushes Shirley up with 600 N",
+        "Shirley pushes down on Earth with 600 N",
+        "Earth pushes Shirley up with 600 N",
+        "Shirley pulls Earth upward with a 600 N gravitational force"],
+    a: 3,
+    e: "Swap the nouns and flip the direction: Earth pulls Shirley down, so Shirley pulls Earth up, also with 600 N. Gravity is a pull, not a push. Earth doesn't move noticeably because its mass is huge." },
+  { q: "A book rests on a table. Gravity pulls it down and the table pushes it up with equal force. Why are these NOT an action–reaction pair?",
+    o: ["They aren't equal in size",
+        "They both act on the same object, the book",
+        "One is a push and one is a pull",
+        "Action–reaction pairs only happen when things move"],
+    a: 1,
+    e: "Action–reaction forces always act on two different objects. Both of these forces act on the book, so they're balanced forces, not a third-law pair. The real pairs are Earth pulls book and book pulls Earth, and table pushes book and book pushes table." },
+  { q: "A rifle is fired. Compared with the force on the rifle, the force on the bullet is…",
+    o: ["Greater, because the bullet flies much faster",
+        "Less, because the bullet is so small",
+        "Equal in size, opposite in direction",
+        "Zero, because the rifle does all the pushing"],
+    a: 2,
+    e: "Third law: the rifle pushes the bullet forward and the bullet pushes the rifle backward with the same size force. That backward push is the recoil you feel." },
+  { q: "The forces on the bullet and rifle are equal, so why does the bullet accelerate much more?",
+    o: ["The bullet has much less mass, and a = F ÷ m",
+        "The bullet gets a bigger force",
+        "The rifle is held still by gravity",
+        "Bullets are aerodynamic"],
+    a: 0,
+    e: "Same force, different masses. With a = F ÷ m, a small mass gets a big acceleration and a big mass gets a small one. That's the third law and second law working together." },
+  { q: "A bug splatters on a bus windshield, but the bus barely changes speed. Which is true?",
+    o: ["The bus exerts more force on the bug",
+        "The bug exerts more force on the bus",
+        "The forces are equal, but the bug has a much greater acceleration",
+        "The forces are equal, and the accelerations are equal"],
+    a: 2,
+    e: "The forces are equal (third law). The bug's tiny mass gives it a huge acceleration, which is why it splatters, while the bus's huge mass gives it a tiny acceleration." },
+  { q: "A massive linebacker collides with a smaller halfback. The force on the linebacker is ___ the force on the halfback.",
+    o: ["greater than", "less than", "equal to", "impossible to compare without their speeds"],
+    a: 2,
+    e: "In any collision, the two objects push on each other with equal and opposite forces, no matter their size or speed. Size only changes how much each one accelerates." },
+  { q: "In that same collision, the linebacker's acceleration is ___ the halfback's acceleration.",
+    o: ["greater than", "less than", "equal to", "zero compared with"],
+    a: 1,
+    e: "Equal forces, but the linebacker has more mass. Since a = F ÷ m, more mass means less acceleration, so the halfback gets knocked back more." },
+  { q: "Two billiard balls of equal mass collide. How do their forces and accelerations compare?",
+    o: ["Equal forces, different accelerations",
+        "Different forces, equal accelerations",
+        "Different forces, different accelerations",
+        "Equal forces, equal accelerations"],
+    a: 3,
+    e: "The forces are always equal (third law). Because the masses are also equal, a = F ÷ m gives equal accelerations in opposite directions." }
+];
+
+let i = 0, score = 0, answers = [];
+const quiz = document.getElementById('quiz');
+const progress = document.getElementById('progress');
+const LETTERS = ['A','B','C','D'];
+
+function render() {
+  progress.style.width = (i / QUESTIONS.length * 100) + '%';
+  const item = QUESTIONS[i];
+  quiz.innerHTML =
+    '<div class="qnum">Question ' + (i+1) + ' of ' + QUESTIONS.length + '</div>' +
+    '<div class="q">' + item.q + '</div>' +
+    item.o.map((t, k) => '<button class="opt" data-k="' + k + '">' + LETTERS[k] + '. ' + t + '</button>').join('') +
+    '<div class="fb" id="fb"></div>' +
+    '<button class="btn" id="next" hidden>' + (i === QUESTIONS.length - 1 ? 'See my score' : 'Next question') + '</button>';
+  quiz.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => choose(+b.dataset.k)));
+  document.getElementById('next').addEventListener('click', () => { i++; i < QUESTIONS.length ? render() : finish(); });
+}
+
+function choose(k) {
+  const item = QUESTIONS[i], right = k === item.a;
+  if (right) score++;
+  answers.push(right);
+  const opts = quiz.querySelectorAll('.opt');
+  opts.forEach(b => b.disabled = true);
+  opts[item.a].classList.add('correct');
+  if (!right) opts[k].classList.add('wrong');
+  const fb = document.getElementById('fb');
+  fb.className = 'fb ' + (right ? 'good' : 'bad');
+  fb.innerHTML = '<strong>' + (right ? 'Correct!' : 'Not quite. The answer is ' + LETTERS[item.a] + '.') + '</strong> ' + item.e;
+  const next = document.getElementById('next');
+  next.hidden = false; next.focus();
+}
+
+function finish() {
+  progress.style.width = '100%';
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  const msg = pct >= 90 ? 'Excellent work!' : pct >= 70 ? 'Nice job. Review the ones you missed.' : 'Keep practicing. Go back over the explanations and try again.';
+  quiz.innerHTML =
+    '<div class="qnum">Your score</div>' +
+    '<div class="score">' + score + ' / ' + QUESTIONS.length + ' (' + pct + '%)</div>' +
+    '<p>' + msg + '</p>' +
+    '<ol class="review">' + QUESTIONS.map((q, n) => '<li><span class="' + (answers[n] ? 'ok">✓' : 'no">✗') + '</span> ' + q.q + '</li>').join('') + '</ol>' +
+    '<button class="btn" id="retry">Retry quiz</button>';
+  document.getElementById('retry').addEventListener('click', () => { i = 0; score = 0; answers = []; render(); window.scrollTo(0,0); });
+}
+
+render();
+</script>
+</body>
+</html>
