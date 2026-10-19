@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Newton's Laws of Motion – Practice Quiz</title>
+<style>
+  :root { --bg:#f4f6fb; --card:#fff; --ink:#1d2433; --muted:#5b6475; --accent:#2f6fed; --good:#1f9d55; --bad:#d64545; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); line-height:1.5; }
+  main { max-width:680px; margin:0 auto; padding:20px 16px 40px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 16px; font-size:.95rem; }
+  .bar { height:8px; background:#dde3ef; border-radius:4px; overflow:hidden; margin-bottom:16px; }
+  .bar > div { height:100%; width:0; background:var(--accent); transition:width .3s; }
+  .card { background:var(--card); border-radius:14px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+  .qnum { color:var(--muted); font-size:.85rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .q { font-size:1.15rem; font-weight:600; margin:6px 0 16px; }
+  .opt { display:block; width:100%; text-align:left; padding:14px 16px; margin:0 0 10px; font-size:1rem; border:2px solid #d5dbe7; border-radius:10px; background:#fff; color:var(--ink); cursor:pointer; min-height:48px; }
+  .opt:hover:not(:disabled) { border-color:var(--accent); }
+  .opt:disabled { cursor:default; }
+  .opt.correct { border-color:var(--good); background:#e8f7ee; }
+  .opt.wrong { border-color:var(--bad); background:#fdeaea; }
+  .fb { margin-top:6px; padding:12px 14px; border-radius:10px; font-size:.97rem; display:none; }
+  .fb.good { display:block; background:#e8f7ee; border-left:4px solid var(--good); }
+  .fb.bad { display:block; background:#fdeaea; border-left:4px solid var(--bad); }
+  .btn { display:inline-block; margin-top:16px; padding:12px 22px; font-size:1rem; font-weight:600; border:none; border-radius:10px; background:var(--accent); color:#fff; cursor:pointer; min-height:48px; }
+  .btn[hidden] { display:none; }
+  .score { font-size:2.4rem; font-weight:700; margin:8px 0; }
+  .review { margin-top:16px; padding-left:20px; }
+  .review li { margin-bottom:8px; }
+  .ok { color:var(--good); font-weight:600; } .no { color:var(--bad); font-weight:600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Newton's Laws of Motion</h1>
+  <p class="sub">10 questions · Pick an answer to see if you're right and why.</p>
+  <div class="bar"><div id="progress"></div></div>
+  <div class="card" id="quiz"></div>
+</main>
+<script>
+const QUESTIONS = [
+  { q: "Newton's first law says an object in motion will…",
+    o: ["Slow down and stop on its own over time",
+        "Keep moving at the same speed and direction unless a net force acts on it",
+        "Speed up as long as it keeps moving",
+        "Move toward the nearest large mass"],
+    a: 1,
+    e: "The first law (the law of inertia) says objects keep doing what they're doing, staying at rest or moving at constant velocity, unless an unbalanced (net) force acts. Things only 'slow down on their own' because friction or air resistance is acting." },
+  { q: "A bus stops suddenly and the passengers lurch forward. Which law best explains this?",
+    o: ["Newton's first law", "Newton's second law", "Newton's third law", "The law of universal gravitation"],
+    a: 0,
+    e: "The passengers' bodies were moving forward and tend to keep moving (inertia) when the bus stops. Nothing pushes them forward. The bus slows down underneath them." },
+  { q: "A 5 kg cart accelerates at 3 m/s². What net force is acting on it?",
+    o: ["1.7 N", "8 N", "15 N", "53 N"],
+    a: 2,
+    e: "F = ma = (5 kg)(3 m/s²) = 15 N." },
+  { q: "A net force of 20 N acts on a 4 kg object. What is its acceleration?",
+    o: ["80 m/s²", "5 m/s²", "16 m/s²", "0.2 m/s²"],
+    a: 1,
+    e: "a = F ÷ m = 20 N ÷ 4 kg = 5 m/s²." },
+  { q: "A 30 N net force gives an object an acceleration of 6 m/s². What is the object's mass?",
+    o: ["180 kg", "24 kg", "0.2 kg", "5 kg"],
+    a: 3,
+    e: "m = F ÷ a = 30 N ÷ 6 m/s² = 5 kg." },
+  { q: "You push a 10 kg box with 50 N of force, and friction pushes back with 20 N. What is the box's acceleration?",
+    o: ["3 m/s²", "5 m/s²", "7 m/s²", "2 m/s²"],
+    a: 0,
+    e: "First find the net force: 50 N − 20 N = 30 N. Then a = F_net ÷ m = 30 N ÷ 10 kg = 3 m/s². Using 50 N alone (5 m/s²) forgets about friction." },
+  { q: "If the net force on an object doubles and its mass stays the same, its acceleration…",
+    o: ["Is cut in half", "Stays the same", "Doubles", "Quadruples"],
+    a: 2,
+    e: "From a = F ÷ m, acceleration is directly proportional to net force. Double the force and you double the acceleration." },
+  { q: "A hammer hits a nail with 200 N of force. How much force does the nail exert on the hammer?",
+    o: ["0 N, because nails can't push", "Less than 200 N, because the nail is smaller", "More than 200 N, because the nail stops the hammer", "200 N, in the opposite direction"],
+    a: 3,
+    e: "Newton's third law: forces come in equal and opposite pairs. The nail pushes back on the hammer with 200 N. The effects differ because the forces act on different objects with different masses." },
+  { q: "A rocket moves upward by pushing exhaust gases downward. This is the best example of…",
+    o: ["Newton's first law", "Newton's third law", "Inertia", "Balanced forces"],
+    a: 1,
+    e: "The rocket pushes gas down (action), and the gas pushes the rocket up (reaction). That's an action–reaction pair, which is the third law." },
+  { q: "A car drives at a constant 60 km/h on a straight, level road. What is the net force on the car?",
+    o: ["Zero", "Forward, equal to the engine's force", "Backward, equal to friction", "Downward, equal to its weight"],
+    a: 0,
+    e: "Constant velocity means zero acceleration, so by F = ma the net force is zero. The engine's forward push is balanced by friction and air resistance." }
+];
+
+let i = 0, score = 0, answers = [];
+const quiz = document.getElementById('quiz');
+const progress = document.getElementById('progress');
+const LETTERS = ['A','B','C','D'];
+
+function render() {
+  progress.style.width = (i / QUESTIONS.length * 100) + '%';
+  const item = QUESTIONS[i];
+  quiz.innerHTML =
+    '<div class="qnum">Question ' + (i+1) + ' of ' + QUESTIONS.length + '</div>' +
+    '<div class="q">' + item.q + '</div>' +
+    item.o.map((t, k) => '<button class="opt" data-k="' + k + '">' + LETTERS[k] + '. ' + t + '</button>').join('') +
+    '<div class="fb" id="fb"></div>' +
+    '<button class="btn" id="next" hidden>' + (i === QUESTIONS.length - 1 ? 'See my score' : 'Next question') + '</button>';
+  quiz.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => choose(+b.dataset.k)));
+  document.getElementById('next').addEventListener('click', () => { i++; i < QUESTIONS.length ? render() : finish(); });
+}
+
+function choose(k) {
+  const item = QUESTIONS[i], right = k === item.a;
+  if (right) score++;
+  answers.push(right);
+  const opts = quiz.querySelectorAll('.opt');
+  opts.forEach(b => b.disabled = true);
+  opts[item.a].classList.add('correct');
+  if (!right) opts[k].classList.add('wrong');
+  const fb = document.getElementById('fb');
+  fb.className = 'fb ' + (right ? 'good' : 'bad');
+  fb.innerHTML = '<strong>' + (right ? 'Correct!' : 'Not quite. The answer is ' + LETTERS[item.a] + '.') + '</strong> ' + item.e;
+  const next = document.getElementById('next');
+  next.hidden = false; next.focus();
+}
+
+function finish() {
+  progress.style.width = '100%';
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  const msg = pct >= 90 ? 'Excellent work!' : pct >= 70 ? 'Nice job. Review the ones you missed.' : 'Keep practicing. Go back over the explanations and try again.';
+  quiz.innerHTML =
+    '<div class="qnum">Your score</div>' +
+    '<div class="score">' + score + ' / ' + QUESTIONS.length + ' (' + pct + '%)</div>' +
+    '<p>' + msg + '</p>' +
+    '<ol class="review">' + QUESTIONS.map((q, n) => '<li><span class="' + (answers[n] ? 'ok">✓' : 'no">✗') + '</span> ' + q.q + '</li>').join('') + '</ol>' +
+    '<button class="btn" id="retry">Retry quiz</button>';
+  document.getElementById('retry').addEventListener('click', () => { i = 0; score = 0; answers = []; render(); window.scrollTo(0,0); });
+}
+
+render();
+</script>
+</body>
+</html>
