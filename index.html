@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Billy's Practice Quizzes</title>
+<style>
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:#f4f6fb; color:#1d2433; display:flex; flex-direction:column; }
+  header { background:#1d2433; color:#fff; padding:10px 16px 0; }
+  header h1 { font-size:1.05rem; margin:0 0 8px; font-weight:600; }
+  nav { display:flex; gap:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  nav::-webkit-scrollbar { display:none; }
+  nav a { flex:0 0 auto; padding:10px 14px; color:#c9d3e8; text-decoration:none; font-size:.95rem; border-radius:8px 8px 0 0; white-space:nowrap; }
+  nav a:hover { color:#fff; }
+  nav a.active { background:#f4f6fb; color:#1d2433; font-weight:600; }
+  iframe { flex:1; width:100%; border:0; background:#f4f6fb; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Billy's Practice Quizzes</h1>
+  <nav id="tabs"></nav>
+</header>
+<iframe id="frame" title="Quiz"></iframe>
+<script>
+// Add new quizzes here: [folder name, tab label]
+const QUIZZES = [
+  ["washington-and-foreign-affairs", "History: Washington & Foreign Affairs"],
+  ["newtons-third-law", "Physics: Newton's Third Law"],
+  ["newtons-laws", "Physics: Newton's Laws"]
+];
+const tabs = document.getElementById('tabs'), frame = document.getElementById('frame');
+QUIZZES.forEach(([id, label]) => {
+  const a = document.createElement('a'); a.href = '#' + id; a.textContent = label; a.dataset.id = id; tabs.appendChild(a);
+});
+function show() {
+  const id = location.hash.slice(1);
+  const pick = QUIZZES.find(q => q[0] === id) ? id : QUIZZES[0][0];
+  frame.src = pick + '/';
+  tabs.querySelectorAll('a').forEach(a => {
+    a.classList.toggle('active', a.dataset.id === pick);
+    if (a.dataset.id === pick) a.scrollIntoView({inline:'nearest', block:'nearest'});
+  });
+}
+window.addEventListener('hashchange', show);
+show();
+</script>
+</body>
+</html>
