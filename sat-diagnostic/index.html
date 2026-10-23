@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAT Baseline Diagnostic</title>
+<style>
+:root{--ink:#1d2433;--muted:#5b6475;--line:#d9dee7;--bg:#f5f7fb;--card:#fff;--accent:#2457c5;--accent-soft:#e8efff;
+--ok:#1f7a3f;--ok-soft:#e6f4ea;--bad:#b42318;--bad-soft:#fdecea;--warn:#9a6700;--warn-soft:#fff6db}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 "Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+.wrap{max-width:780px;margin:0 auto;padding:16px 16px 80px}
+h1{font-size:1.65rem;line-height:1.25;margin:.4em 0 .2em}
+h2{font-size:1.35rem;margin:0 0 .3em}
+.sub{color:var(--muted);margin:0 0 1em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.intro ul{padding-left:1.2em;margin:.4em 0}
+.intro li{margin:.25em 0}
+.note{background:var(--warn-soft);border:1px solid #f0d58a;border-radius:10px;padding:10px 14px;font-size:.93rem}
+label.name{display:block;font-weight:600;margin-top:10px}
+input[type=text]{font:inherit;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;width:100%;max-width:320px;background:#fff}
+input[type=text]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.section-head{background:var(--ink);color:#fff;border-radius:12px;padding:16px 20px;margin:28px 0 8px}
+.section-head h2{color:#fff}
+.section-head p{margin:.2em 0 .6em;color:#d6dbea}
+.btn{font:inherit;font-weight:600;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;background:var(--accent);color:#fff}
+.btn:hover{filter:brightness(1.08)}
+.btn.secondary{background:#fff;color:var(--accent);border:1.5px solid var(--accent)}
+.btn.ghost{background:transparent;color:#fff;border:1.5px solid #8fa3d6}
+.btn:disabled{opacity:.5;cursor:default}
+.q .qnum{font-size:.82rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.passage{border-left:4px solid var(--line);padding:2px 0 2px 14px;margin:0 0 12px}
+.passage p{margin:.3em 0 .6em}
+.textlabel{font-weight:700;margin-bottom:0!important}
+.notes{margin:.2em 0 .4em;padding-left:1.2em}
+.stem{font-weight:600;margin:6px 0 10px}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;background:#fff;transition:border-color .12s,background .12s}
+.opt:hover{border-color:#9bb3e8}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .letter{flex:0 0 30px;height:30px;border-radius:50%;border:1.5px solid #9aa4b5;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel .letter{background:var(--accent);border-color:var(--accent);color:#fff}
+.opt input:focus-visible + .letter{box-shadow:0 0 0 3px #9bb3e8}
+.locked .opt{cursor:default}
+.grid-in{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid-in input{max-width:200px;font-size:1.1rem}
+.hint{color:var(--muted);font-size:.88rem}
+table.data{border-collapse:collapse;margin:6px 0 10px;font-size:.95rem;max-width:100%}
+table.data caption{font-weight:700;text-align:left;padding-bottom:4px}
+table.data th,table.data td{border:1px solid #b9c1cf;padding:5px 10px;text-align:center}
+table.data thead th{background:#eef1f6}
+table.data tbody th{background:#f6f8fb;text-align:left}
+.tablewrap{overflow-x:auto}
+#timerbar{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 2px 6px rgba(0,0,0,.05)}
+#timerbar .in{max-width:780px;margin:0 auto;padding:8px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:.95rem}
+#timerbar .t{font-variant-numeric:tabular-nums;font-weight:700;font-size:1.1rem;min-width:62px}
+#timerbar .lab{color:var(--muted)}
+#timerbar .prog{margin-left:auto;color:var(--muted)}
+#timerbar.warn{background:var(--warn-soft)} #timerbar.over{background:var(--bad-soft)}
+#timermsg{font-weight:600}
+.submit-area{text-align:center}
+.results h2{margin-top:0}
+.big{font-size:2.2rem;font-weight:800;margin:.1em 0}
+table.res{border-collapse:collapse;width:100%;font-size:.95rem}
+table.res th,table.res td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+table.res th{background:#f2f4f8}
+table.res td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.prio td{background:var(--bad-soft)}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px}
+.tag.p{background:var(--bad);color:#fff}.tag.s{background:var(--ok);color:#fff}.tag.m{background:#dfe4ec;color:var(--ink)}
+.rev{border-left:5px solid var(--line);padding:10px 14px;margin:10px 0;background:#fff;border-radius:8px;border:1px solid var(--line)}
+.rev.ok{border-left:5px solid var(--ok)}.rev.bad{border-left:5px solid var(--bad)}
+.rev .h{font-weight:700}.rev .h .mark.ok{color:var(--ok)}.rev .h .mark.bad{color:var(--bad)}
+.rev .d{color:var(--muted);font-size:.85rem}
+.q.r-ok{border-color:#9fd3ae}.q.r-bad{border-color:#f0a9a2}
+.fb{margin-top:10px;padding:8px 12px;border-radius:8px;font-size:.93rem}
+.fb.ok{background:var(--ok-soft)}.fb.bad{background:var(--bad-soft)}
+.opt.correct{border-color:var(--ok);background:var(--ok-soft)}
+.opt.correct .letter{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt.wrong .letter{background:var(--bad);border-color:var(--bad);color:#fff}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+#copymsg{color:var(--ok);font-weight:600;min-height:1.4em;text-align:center}
+#copyfallback{width:100%;min-height:180px;font:13px/1.4 monospace;display:none;margin-top:8px}
+.hidden{display:none!important}
+@media (max-width:560px){body{font-size:16px}.wrap{padding:10px 10px 60px}.card{padding:14px}.section-head{padding:14px}
+#timerbar .prog{margin-left:0;width:100%}table.data{font-size:.85rem}table.data th,table.data td{padding:4px 6px}table.data tbody th{white-space:nowrap}table.res{font-size:.85rem}}
+@media print{#timerbar,.btn,.row{display:none!important}body{background:#fff}.card{break-inside:avoid;box-shadow:none}}
+</style></head>
+<body>
+<div id="timerbar" class="hidden"><div class="in">
+  <span class="lab" id="tlab"></span><span class="t" id="tval">16:00</span>
+  <button class="btn secondary" id="tpause" style="padding:5px 12px">Pause</button>
+  <span id="timermsg"></span><span class="prog" id="prog"></span>
+</div></div>
+<div class="wrap">
+  <h1>SAT Baseline Diagnostic</h1>
+  <p class="sub">A short practice check-in modeled on the digital SAT &middot; 26 questions &middot; about 30&ndash;35 minutes</p>
+  <div class="card intro">
+    <b>Instructions</b>
+    <ul>
+      <li><b>Section 1: Reading and Writing</b> has 14 questions. Suggested time: <b>about 16 minutes</b>. Each question has a short passage (or a pair of short texts) and one question.</li>
+      <li><b>Section 2: Math</b> has 12 questions. Suggested time: <b>about 16 minutes</b>. <b>A calculator is allowed</b> for every math question. Have scratch paper ready.</li>
+      <li>Most questions are multiple choice (A&ndash;D). For <b>student-produced response</b> questions, type your answer. Fractions like 7/2 and decimals like 3.5 are both fine.</li>
+      <li><b>There's no penalty for guessing, so answer every question.</b> If you get stuck, make your best guess and move on.</li>
+      <li>The questions get harder as each section goes on, so don't worry if the last few feel tough.</li>
+      <li>The timer is optional and only gives warnings. It never locks your answers. Your answers are saved in this browser as you go.</li>
+      <li>When you finish both sections, click <b>Submit</b> at the bottom to see your results.</li>
+    </ul>
+    <label class="name" for="studentName">Your name (optional)</label>
+    <input type="text" id="studentName" autocomplete="off" placeholder="First name">
+  </div>
+  <p class="note">This is an informal diagnostic to find a starting point. It is not an official SAT and does not predict an SAT score.</p>
+
+  <div class="section-head"><h2>Section 1: Reading and Writing</h2><p>14 questions &middot; about 16 minutes</p>
+    <button class="btn ghost startbtn" data-k="RW">Start 16-minute timer</button></div>
+  <div id="sec-RW"></div>
+
+  <div class="section-head"><h2>Section 2: Math</h2><p>12 questions &middot; about 16 minutes &middot; calculator allowed</p>
+    <button class="btn ghost startbtn" data-k="Math">Start 16-minute timer</button></div>
+  <div id="sec-Math"></div>
+
+  <div class="card submit-area">
+    <p>Done with both sections? Check that you've answered every question, then submit.</p>
+    <button class="btn" id="submitBtn" style="font-size:1.1rem;padding:12px 28px">Submit answers</button>
+  </div>
+  <div class="card results hidden" id="results"></div>
+</div>
+<script>
+const QS = [{"id": "RW1", "n": 1, "section": "Reading and Writing", "type": "mc", "passage": "<p>Although the city council expected the new bike lanes to be controversial, public response was overwhelmingly favorable. Residents who had initially opposed the plan became some of its most ______ supporters, attending meetings to argue for extending the lanes into neighboring districts.</p>", "stem": "Which choice completes the text with the most logical and precise word or phrase?", "options": ["reluctant", "skeptical", "enthusiastic", "occasional"]}, {"id": "RW2", "n": 2, "section": "Reading and Writing", "type": "mc", "passage": "<p>The collection of letters written by the twentieth-century botanist Ynés Mexía ______ detailed descriptions of the plants she gathered during her expeditions across Mexico and South America.</p>", "stem": "Which choice completes the text so that it conforms to the conventions of Standard English?", "options": ["contains", "contain", "are containing", "have contained"]}, {"id": "RW3", "n": 3, "section": "Reading and Writing", "type": "mc", "passage": "<p>Honeybees communicate the location of food sources through a movement known as the waggle dance. The angle of the dance indicates the direction of the food relative to the sun. ______ the length of the waggle portion of the dance signals how far away the food is.</p>", "stem": "Which choice completes the text with the most logical transition?", "options": ["However,", "Therefore,", "For instance,", "Additionally,"]}, {"id": "RW4", "n": 4, "section": "Reading and Writing", "type": "mc", "passage": "<p>For decades, city planners treated rooftops as wasted space. In recent years, however, many cities have begun encouraging &ldquo;green roofs&rdquo;&mdash;roofs covered with soil and plants. Studies show that these roofs absorb rainwater that would otherwise overwhelm storm drains, lower building temperatures in summer, and provide habitat for birds and insects. Although they cost more to install than conventional roofs, green roofs can last longer because the plant layer shields roofing materials from sun damage.</p>", "stem": "Which choice best states the main idea of the text?", "options": ["Green roofs are too expensive for most cities to adopt.", "Green roofs offer several environmental and practical benefits, which has led cities to promote them.", "Birds and insects increasingly depend on city rooftops for survival.", "City planners have long misunderstood how storm drains function."]}, {"id": "RW5", "n": 5, "section": "Reading and Writing", "type": "mc", "passage": "<p>In 1955, Tu Youyou completed her pharmacology studies in Beijing ______ more than a decade later, she joined a research effort whose work on traditional remedies led to the discovery of artemisinin, a drug that has saved millions of lives from malaria.</p>", "stem": "Which choice completes the text so that it conforms to the conventions of Standard English?", "options": ["Beijing,", "Beijing", "Beijing;", "Beijing, then"]}, {"id": "RW6", "n": 6, "section": "Reading and Writing", "type": "mc", "passage": "<p>Many people assume that deserts are nearly lifeless. The Sonoran Desert, however, is home to more than 2,000 species of plants, many of which have developed remarkable strategies for surviving drought. The saguaro cactus, for example, can expand its pleated trunk to store hundreds of liters of water after a single heavy rain.</p>", "stem": "Which choice best describes the overall structure of the text?", "options": ["It presents a common belief, challenges that belief, and then gives a specific example supporting the challenge.", "It describes a scientific debate and explains why the debate remains unresolved.", "It compares the plant life of several deserts.", "It introduces a problem and then proposes a solution to it."]}, {"id": "RW7", "n": 7, "section": "Reading and Writing", "type": "mc", "passage": "<table class=\"data\"><caption>Riverside Library Summer Reading Program</caption>\n<thead><tr><th>Year</th><th>Number of participants</th><th>Average books read per participant</th></tr></thead>\n<tbody><tr><td>2022</td><td>140</td><td>6.2</td></tr><tr><td>2023</td><td>185</td><td>5.8</td></tr><tr><td>2024</td><td>230</td><td>5.1</td></tr></tbody></table>\n<p>A student is writing about the Riverside Library's summer reading program. The program has grown in popularity since 2022. However, the data suggest that this growth may have come with a tradeoff: ______</p>", "stem": "Which choice most effectively uses data from the table to complete the statement?", "options": ["the number of participants increased from 140 in 2022 to 230 in 2024.", "participants read an average of 6.2 books in 2022.", "the average number of books read per participant was highest in 2024.", "as the number of participants increased each year, the average number of books read per participant decreased."]}, {"id": "RW8", "n": 8, "section": "Reading and Writing", "type": "mc", "passage": "<p>By the time the James Webb Space Telescope launched in December 2021, engineers ______ on its design for more than two decades.</p>", "stem": "Which choice completes the text so that it conforms to the conventions of Standard English?", "options": ["work", "will have worked", "had been working", "are working"]}, {"id": "RW9", "n": 9, "section": "Reading and Writing", "type": "mc", "passage": "<p>Cellist Yo-Yo Ma and pianist Kathryn Stott have performed together for decades, and critics often praise ______ ability to anticipate each other's musical choices.</p>", "stem": "Which choice completes the text so that it conforms to the conventions of Standard English?", "options": ["its", "their", "his", "one's"]}, {"id": "RW10", "n": 10, "section": "Reading and Writing", "type": "mc", "passage": "<p>While researching a topic, a student has taken the following notes:</p>\n<ul class=\"notes\"><li>The axolotl is a salamander native to lakes near Mexico City.</li>\n<li>Unlike most salamanders, axolotls usually keep their aquatic, larval form throughout their lives.</li>\n<li>Axolotls can regrow lost limbs and even parts of their hearts and brains.</li>\n<li>Scientists study axolotls to learn how regeneration might someday be applied to human medicine.</li></ul>", "stem": "The student wants to explain why scientists are interested in axolotls. Which choice most effectively uses relevant information from the notes to accomplish this goal?", "options": ["Because axolotls can regrow lost limbs and even parts of their hearts and brains, scientists study them to learn how regeneration might someday benefit human medicine.", "The axolotl, a salamander native to lakes near Mexico City, usually keeps its larval form throughout its life.", "Unlike most salamanders, axolotls live in lakes near Mexico City.", "Axolotls are salamanders, and scientists study many different kinds of salamanders."]}, {"id": "RW11", "n": 11, "section": "Reading and Writing", "type": "mc", "passage": "<p>A biologist hypothesizes that songbirds living in cities sing at higher pitches than members of the same species living in forests because higher-pitched songs are easier to hear over low-pitched traffic noise.</p>", "stem": "Which finding, if true, would most directly support the biologist's hypothesis?", "options": ["Forest songbirds sing more often in the morning than in the evening.", "City-dwelling songbirds have larger average body sizes than forest songbirds.", "Some songbird species are found only in forests.", "Within a single city, songbirds near busy highways sing at higher pitches than songbirds of the same species in quiet parks."]}, {"id": "RW12", "n": 12, "section": "Reading and Writing", "type": "mc", "passage": "<p>Having spent three years photographing coral reefs in the Pacific Ocean, ______</p>", "stem": "Which choice completes the text so that it conforms to the conventions of Standard English?", "options": ["the photographer's new exhibit features images of reef fish.", "images of reef fish are featured in the photographer's new exhibit.", "the photographer has filled her new exhibit with images of reef fish.", "the new exhibit by the photographer features images of reef fish."]}, {"id": "RW13", "n": 13, "section": "Reading and Writing", "type": "mc", "passage": "<p>Archaeologists excavating a site in northern Europe found grains of barley dating to about 3500 BCE&mdash;centuries before farming was previously thought to have reached the region. However, the grains were found alongside pottery fragments that closely match pottery made by farming communities several hundred kilometers to the south, and the site shows no evidence of tools used for planting or harvesting crops. These findings suggest that ______</p>", "stem": "Which choice most logically completes the text?", "options": ["the people at the site were the first in Europe to grow barley.", "the barley may have been obtained through trade with southern farming communities rather than grown locally.", "farming tools in the region were made of materials that do not survive over time.", "southern farming communities learned to make pottery from people in northern Europe."]}, {"id": "RW14", "n": 14, "section": "Reading and Writing", "type": "mc", "passage": "<p class=\"textlabel\">Text 1</p><p>Many economists have argued that a four-day workweek must reduce productivity because employees simply have fewer hours in which to complete their tasks. According to this view, any gains in employee satisfaction are outweighed by losses in output.</p>\n<p class=\"textlabel\">Text 2</p><p>In a trial involving dozens of companies, researchers found that most firms that adopted a four-day week reported output equal to or greater than before. The researchers suggest that well-rested employees work more efficiently and that shorter weeks push companies to cut unnecessary meetings.</p>", "stem": "Based on the texts, how would the researchers in Text 2 most likely respond to the view described in Text 1?", "options": ["They would argue that the view overlooks ways in which fewer hours can be used more productively.", "They would agree that a four-day week reduces output but argue that higher satisfaction justifies the change.", "They would argue that economists should focus on employee satisfaction instead of output.", "They would claim that a four-day week benefits only companies that hold many meetings."]}, {"id": "M1", "n": 1, "section": "Math", "type": "mc", "passage": "", "stem": "Which of the following values of <i>x</i> satisfies the inequality 3<i>x</i> &minus; 5 &gt; 16?", "options": ["5", "6", "7", "8"]}, {"id": "M2", "n": 2, "section": "Math", "type": "mc", "passage": "", "stem": "A jacket originally priced at $80 is on sale for 25% off. A sales tax of 8% is then applied to the sale price. What is the total cost of the jacket?", "options": ["$60.00", "$64.80", "$66.40", "$86.40"]}, {"id": "M3", "n": 3, "section": "Math", "type": "grid", "passage": "", "stem": "A rectangular fish tank is 50 centimeters long, 30 centimeters wide, and 40 centimeters tall. It is filled with water to a height of 30 centimeters. If 1 liter = 1,000 cubic centimeters, how many liters of water are in the tank?", "options": []}, {"id": "M4", "n": 4, "section": "Math", "type": "mc", "passage": "", "stem": "A plumber's total charge, <i>C</i>, in dollars, for a job lasting <i>h</i> hours is given by <i>C</i> = 45<i>h</i> + 60. What is the best interpretation of the number 60 in this equation?", "options": ["The plumber charges $60 per hour.", "The total charge for a 1-hour job is $60.", "The plumber charges a fixed $60 for each job, regardless of how many hours it lasts.", "The plumber works 60 hours per week."]}, {"id": "M5", "n": 5, "section": "Math", "type": "mc", "passage": "", "stem": "Which expression is equivalent to (2<i>x</i> + 3)(<i>x</i> &minus; 5)?", "options": ["2<i>x</i><sup>2</sup> &minus; 7<i>x</i> &minus; 15", "2<i>x</i><sup>2</sup> + 7<i>x</i> &minus; 15", "2<i>x</i><sup>2</sup> &minus; 13<i>x</i> &minus; 15", "2<i>x</i><sup>2</sup> &minus; 15"]}, {"id": "M6", "n": 6, "section": "Math", "type": "grid", "passage": "<table class=\"data\"><caption>Club preference of students surveyed</caption>\n<thead><tr><th></th><th>Robotics</th><th>Drama</th><th>Debate</th><th>Total</th></tr></thead>\n<tbody><tr><th>Grade 9</th><td>12</td><td>18</td><td>10</td><td>40</td></tr>\n<tr><th>Grade 10</th><td>15</td><td>9</td><td>6</td><td>30</td></tr>\n<tr><th>Total</th><td>27</td><td>27</td><td>16</td><td>70</td></tr></tbody></table>", "stem": "The table shows the results of a survey of 70 students. If one of the Grade 10 students surveyed is selected at random, what is the probability that the student prefers Robotics? (Enter your answer as a fraction or a decimal.)", "options": []}, {"id": "M7", "n": 7, "section": "Math", "type": "grid", "passage": "", "stem": "A school play sold 30 tickets for a total of $285. Adult tickets cost $12 each and student tickets cost $7 each. How many adult tickets were sold?", "options": []}, {"id": "M8", "n": 8, "section": "Math", "type": "mc", "passage": "", "stem": "A lab culture starts with 500 bacteria, and the number of bacteria doubles every 3 hours. Which function gives the number of bacteria, <i>P</i>(<i>t</i>), after <i>t</i> hours?", "options": ["<i>P</i>(<i>t</i>) = 500 &middot; 2<sup>3<i>t</i></sup>", "<i>P</i>(<i>t</i>) = 500 &middot; 3<sup><i>t</i>/2</sup>", "<i>P</i>(<i>t</i>) = 500 &middot; 2<sup><i>t</i>/3</sup>", "<i>P</i>(<i>t</i>) = 500 + 2<sup><i>t</i>/3</sup>"]}, {"id": "M9", "n": 9, "section": "Math", "type": "grid", "passage": "", "stem": "The mean of a student's 6 quiz scores is 84. When the lowest score is removed, the mean of the remaining 5 scores is 87. What is the lowest score?", "options": []}, {"id": "M10", "n": 10, "section": "Math", "type": "mc", "passage": "", "stem": "In right triangle <i>ABC</i>, the right angle is at <i>C</i>, and sin <i>A</i> = 5/13. What is the value of tan <i>B</i>?", "options": ["5/13", "5/12", "12/13", "12/5"]}, {"id": "M11", "n": 11, "section": "Math", "type": "grid", "passage": "", "stem": "In the equation <i>x</i><sup>2</sup> + <i>bx</i> + 36 = 0, <i>b</i> is a positive constant. If the equation has exactly one real solution, what is the value of <i>b</i>?", "options": []}, {"id": "M12", "n": 12, "section": "Math", "type": "mc", "passage": "", "stem": "A circle in the <i>xy</i>-plane has the equation <i>x</i><sup>2</sup> + <i>y</i><sup>2</sup> &minus; 6<i>x</i> + 8<i>y</i> = 11. What is the radius of the circle?", "options": ["&radic;11", "6", "11", "36"]}];
+const KEY = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob("eyJSVzEiOiB7ImFuc3dlciI6ICJDIiwgImFjY2VwdCI6IFtdLCAiZXhwbCI6ICJUaGUgcmVzaWRlbnRzIGF0dGVuZCBtZWV0aW5ncyB0byBhcmd1ZSBmb3IgPGVtPmV4cGFuZGluZzwvZW0+IHRoZSBsYW5lcywgc28gdGhleSBhcmUgZWFnZXIsIGVuZXJnZXRpYyBzdXBwb3J0ZXJzLiAmbGRxdW87UmVsdWN0YW50LCZyZHF1bzsgJmxkcXVvO3NrZXB0aWNhbCwmcmRxdW87IGFuZCAmbGRxdW87b2NjYXNpb25hbCZyZHF1bzsgY29udHJhZGljdCB0aGF0IGJlaGF2aW9yLiIsICJkb21haW4iOiAiQ3JhZnQgYW5kIFN0cnVjdHVyZSIsICJza2lsbCI6ICJXb3JkcyBpbiBjb250ZXh0IiwgIm9wdFRleHQiOiBbInJlbHVjdGFudCIsICJza2VwdGljYWwiLCAiZW50aHVzaWFzdGljIiwgIm9jY2FzaW9uYWwiXX0sICJSVzIiOiB7ImFuc3dlciI6ICJBIiwgImFjY2VwdCI6IFtdLCAiZXhwbCI6ICJUaGUgc3ViamVjdCBpcyB0aGUgc2luZ3VsYXIgbm91biAmbGRxdW87Y29sbGVjdGlvbiZyZHF1bzsgKG5vdCAmbGRxdW87bGV0dGVycywmcmRxdW87IHdoaWNoIGlzIGluc2lkZSB0aGUgcHJlcG9zaXRpb25hbCBwaHJhc2UpLCBzbyBpdCBuZWVkcyB0aGUgc2luZ3VsYXIgdmVyYiAmbGRxdW87Y29udGFpbnMuJnJkcXVvOyIsICJkb21haW4iOiAiU3RhbmRhcmQgRW5nbGlzaCBDb252ZW50aW9ucyIsICJza2lsbCI6ICJTdWJqZWN0LXZlcmIgYWdyZWVtZW50IiwgIm9wdFRleHQiOiBbImNvbnRhaW5zIiwgImNvbnRhaW4iLCAiYXJlIGNvbnRhaW5pbmciLCAiaGF2ZSBjb250YWluZWQiXX0sICJSVzMiOiB7ImFuc3dlciI6ICJEIiwgImFjY2VwdCI6IFtdLCAiZXhwbCI6ICJUaGUgbGFzdCBzZW50ZW5jZSBhZGRzIGEgc2Vjb25kIHBpZWNlIG9mIGluZm9ybWF0aW9uIHRoZSBkYW5jZSBjb252ZXlzIChkaXN0YW5jZSwgYWxvbmdzaWRlIGRpcmVjdGlvbiksIHNvIGFuIGFkZGl0aXZlIHRyYW5zaXRpb24gZml0cy4gVGhlcmUgaXMgbm8gY29udHJhc3QsIGNhdXNlLWVmZmVjdCwgb3IgZXhhbXBsZSByZWxhdGlvbnNoaXAuIiwgImRvbWFpbiI6ICJFeHByZXNzaW9uIG9mIElkZWFzIiwgInNraWxsIjogIlRyYW5zaXRpb25zIiwgIm9wdFRleHQiOiBbIkhvd2V2ZXIsIiwgIlRoZXJlZm9yZSwiLCAiRm9yIGluc3RhbmNlLCIsICJBZGRpdGlvbmFsbHksIl19LCAiUlc0IjogeyJhbnN3ZXIiOiAiQiIsICJhY2NlcHQiOiBbXSwgImV4cGwiOiAiVGhlIHBhc3NhZ2UgaXMgb3JnYW5pemVkIGFyb3VuZCB0aGUgYmVuZWZpdHMgb2YgZ3JlZW4gcm9vZnMgKHJhaW53YXRlciwgY29vbGluZywgaGFiaXRhdCwgZHVyYWJpbGl0eSkgYW5kIG5vdGVzIHRoYXQgY2l0aWVzIG5vdyBlbmNvdXJhZ2UgdGhlbS4gVGhlIG90aGVyIGNob2ljZXMgYXJlIGVpdGhlciBjb250cmFkaWN0ZWQgb3IgYXJlIG1pbm9yIGRldGFpbHMuIiwgImRvbWFpbiI6ICJJbmZvcm1hdGlvbiBhbmQgSWRlYXMiLCAic2tpbGwiOiAiQ2VudHJhbCBpZGVhcyBhbmQgZGV0YWlscyIsICJvcHRUZXh0IjogWyJHcmVlbiByb29mcyBhcmUgdG9vIGV4cGVuc2l2ZSBmb3IgbW9zdCBjaXRpZXMgdG8gYWRvcHQuIiwgIkdyZWVuIHJvb2ZzIG9mZmVyIHNldmVyYWwgZW52aXJvbm1lbnRhbCBhbmQgcHJhY3RpY2FsIGJlbmVmaXRzLCB3aGljaCBoYXMgbGVkIGNpdGllcyB0byBwcm9tb3RlIHRoZW0uIiwgIkJpcmRzIGFuZCBpbnNlY3RzIGluY3JlYXNpbmdseSBkZXBlbmQgb24gY2l0eSByb29mdG9wcyBmb3Igc3Vydml2YWwuIiwgIkNpdHkgcGxhbm5lcnMgaGF2ZSBsb25nIG1pc3VuZGVyc3Rvb2QgaG93IHN0b3JtIGRyYWlucyBmdW5jdGlvbi4iXX0sICJSVzUiOiB7ImFuc3dlciI6ICJDIiwgImFjY2VwdCI6IFtdLCAiZXhwbCI6ICJCb3RoIHNpZGVzIG9mIHRoZSBibGFuayBhcmUgY29tcGxldGUgaW5kZXBlbmRlbnQgY2xhdXNlcywgc28gdGhleSBuZWVkIGEgc2VtaWNvbG9uIChvciBhIGNvbW1hIHBsdXMgYSBjb29yZGluYXRpbmcgY29uanVuY3Rpb24gbGlrZSAmbGRxdW87YW5kJnJkcXVvOykuIEEgY29tbWEgYWxvbmUsIG5vIHB1bmN0dWF0aW9uLCBvciAmbGRxdW87LCB0aGVuJnJkcXVvOyBjcmVhdGVzIGEgY29tbWEgc3BsaWNlIG9yIHJ1bi1vbi4iLCAiZG9tYWluIjogIlN0YW5kYXJkIEVuZ2xpc2ggQ29udmVudGlvbnMiLCAic2tpbGwiOiAiQm91bmRhcmllcyAocHVuY3R1YXRpb24pIiwgIm9wdFRleHQiOiBbIkJlaWppbmcsIiwgIkJlaWppbmciLCAiQmVpamluZzsiLCAiQmVpamluZywgdGhlbiJdfSwgIlJXNiI6IHsiYW5zd2VyIjogIkEiLCAiYWNjZXB0IjogW10sICJleHBsIjogIlNlbnRlbmNlIDEgc3RhdGVzIGFuIGFzc3VtcHRpb24gKGRlc2VydHMgYXJlIGxpZmVsZXNzKSwgc2VudGVuY2UgMiBjb3VudGVycyBpdCB3aXRoIHRoZSBTb25vcmFuIERlc2VydCdzIGRpdmVyc2l0eSwgYW5kIHNlbnRlbmNlIDMgZ2l2ZXMgdGhlIHNhZ3Vhcm8gYXMgYW4gZXhhbXBsZS4iLCAiZG9tYWluIjogIkNyYWZ0IGFuZCBTdHJ1Y3R1cmUiLCAic2tpbGwiOiAiVGV4dCBzdHJ1Y3R1cmUgYW5kIHB1cnBvc2UiLCAib3B0VGV4dCI6IFsiSXQgcHJlc2VudHMgYSBjb21tb24gYmVsaWVmLCBjaGFsbGVuZ2VzIHRoYXQgYmVsaWVmLCBhbmQgdGhlbiBnaXZlcyBhIHNwZWNpZmljIGV4YW1wbGUgc3VwcG9ydGluZyB0aGUgY2hhbGxlbmdlLiIsICJJdCBkZXNjcmliZXMgYSBzY2llbnRpZmljIGRlYmF0ZSBhbmQgZXhwbGFpbnMgd2h5IHRoZSBkZWJhdGUgcmVtYWlucyB1bnJlc29sdmVkLiIsICJJdCBjb21wYXJlcyB0aGUgcGxhbnQgbGlmZSBvZiBzZXZlcmFsIGRlc2VydHMuIiwgIkl0IGludHJvZHVjZXMgYSBwcm9ibGVtIGFuZCB0aGVuIHByb3Bvc2VzIGEgc29sdXRpb24gdG8gaXQuIl19LCAiUlc3IjogeyJhbnN3ZXIiOiAiRCIsICJhY2NlcHQiOiBbXSwgImV4cGwiOiAiQSAmbGRxdW87dHJhZGVvZmYmcmRxdW87IHJlcXVpcmVzIHNvbWV0aGluZyBnZXR0aW5nIHdvcnNlIGFzIHBhcnRpY2lwYXRpb24gZ3Jvd3M7IG9ubHkgRCBwYWlycyByaXNpbmcgcGFydGljaXBhdGlvbiB3aXRoIGEgZmFsbGluZyBhdmVyYWdlLiBDIGlzIGZhbHNlICgyMDI0IHdhcyB0aGUgbG93ZXN0KSwgYW5kIEEgYW5kIEIgZG9uJ3Qgc2hvdyBhIHRyYWRlb2ZmLiIsICJkb21haW4iOiAiSW5mb3JtYXRpb24gYW5kIElkZWFzIiwgInNraWxsIjogIkNvbW1hbmQgb2YgZXZpZGVuY2UgKHF1YW50aXRhdGl2ZSkiLCAib3B0VGV4dCI6IFsidGhlIG51bWJlciBvZiBwYXJ0aWNpcGFudHMgaW5jcmVhc2VkIGZyb20gMTQwIGluIDIwMjIgdG8gMjMwIGluIDIwMjQuIiwgInBhcnRpY2lwYW50cyByZWFkIGFuIGF2ZXJhZ2Ugb2YgNi4yIGJvb2tzIGluIDIwMjIuIiwgInRoZSBhdmVyYWdlIG51bWJlciBvZiBib29rcyByZWFkIHBlciBwYXJ0aWNpcGFudCB3YXMgaGlnaGVzdCBpbiAyMDI0LiIsICJhcyB0aGUgbnVtYmVyIG9mIHBhcnRpY2lwYW50cyBpbmNyZWFzZWQgZWFjaCB5ZWFyLCB0aGUgYXZlcmFnZSBudW1iZXIgb2YgYm9va3MgcmVhZCBwZXIgcGFydGljaXBhbnQgZGVjcmVhc2VkLiJdfSwgIlJXOCI6IHsiYW5zd2VyIjogIkMiLCAiYWNjZXB0IjogW10sICJleHBsIjogIlRoZSB3b3JrIGhhcHBlbmVkIG92ZXIgYSBsb25nIHN0cmV0Y2ggPGVtPmJlZm9yZTwvZW0+IGFub3RoZXIgcGFzdCBldmVudCAodGhlIDIwMjEgbGF1bmNoKSwgd2hpY2ggY2FsbHMgZm9yIHRoZSBwYXN0IHBlcmZlY3QgcHJvZ3Jlc3NpdmUgJmxkcXVvO2hhZCBiZWVuIHdvcmtpbmcuJnJkcXVvOyIsICJkb21haW4iOiAiU3RhbmRhcmQgRW5nbGlzaCBDb252ZW50aW9ucyIsICJza2lsbCI6ICJWZXJiIHRlbnNlIiwgIm9wdFRleHQiOiBbIndvcmsiLCAid2lsbCBoYXZlIHdvcmtlZCIsICJoYWQgYmVlbiB3b3JraW5nIiwgImFyZSB3b3JraW5nIl19LCAiUlc5IjogeyJhbnN3ZXIiOiAiQiIsICJhY2NlcHQiOiBbXSwgImV4cGwiOiAiVGhlIHByb25vdW4gcmVmZXJzIHRvIHR3byBwZW9wbGUsIE1hIGFuZCBTdG90dCwgc28gaXQgbXVzdCBiZSB0aGUgcGx1cmFsICZsZHF1bzt0aGVpci4mcmRxdW87ICZsZHF1bztFYWNoIG90aGVyJ3MmcmRxdW87IGNvbmZpcm1zIHRoZSBhYmlsaXR5IGJlbG9uZ3MgdG8gYm90aCBvZiB0aGVtLiIsICJkb21haW4iOiAiU3RhbmRhcmQgRW5nbGlzaCBDb252ZW50aW9ucyIsICJza2lsbCI6ICJQcm9ub3VuLWFudGVjZWRlbnQgYWdyZWVtZW50IiwgIm9wdFRleHQiOiBbIml0cyIsICJ0aGVpciIsICJoaXMiLCAib25lJ3MiXX0sICJSVzEwIjogeyJhbnN3ZXIiOiAiQSIsICJhY2NlcHQiOiBbXSwgImV4cGwiOiAiVGhlIGdvYWwgaXMgPGVtPndoeSBzY2llbnRpc3RzIGFyZSBpbnRlcmVzdGVkPC9lbT47IG9ubHkgQSBnaXZlcyB0aGUgcmVhc29uIChyZWdlbmVyYXRpb24pIGFuZCBjb25uZWN0cyBpdCB0byByZXNlYXJjaCBvbiBodW1hbiBtZWRpY2luZS4gQiBpcyBhY2N1cmF0ZSBidXQgb2ZmLWdvYWw7IEMgbWlzc3RhdGVzIHRoZSBub3RlczsgRCBpcyB2YWd1ZS4iLCAiZG9tYWluIjogIkV4cHJlc3Npb24gb2YgSWRlYXMiLCAic2tpbGwiOiAiUmhldG9yaWNhbCBzeW50aGVzaXMiLCAib3B0VGV4dCI6IFsiQmVjYXVzZSBheG9sb3RscyBjYW4gcmVncm93IGxvc3QgbGltYnMgYW5kIGV2ZW4gcGFydHMgb2YgdGhlaXIgaGVhcnRzIGFuZCBicmFpbnMsIHNjaWVudGlzdHMgc3R1ZHkgdGhlbSB0byBsZWFybiBob3cgcmVnZW5lcmF0aW9uIG1pZ2h0IHNvbWVkYXkgYmVuZWZpdCBodW1hbiBtZWRpY2luZS4iLCAiVGhlIGF4b2xvdGwsIGEgc2FsYW1hbmRlciBuYXRpdmUgdG8gbGFrZXMgbmVhciBNZXhpY28gQ2l0eSwgdXN1YWxseSBrZWVwcyBpdHMgbGFydmFsIGZvcm0gdGhyb3VnaG91dCBpdHMgbGlmZS4iLCAiVW5saWtlIG1vc3Qgc2FsYW1hbmRlcnMsIGF4b2xvdGxzIGxpdmUgaW4gbGFrZXMgbmVhciBNZXhpY28gQ2l0eS4iLCAiQXhvbG90bHMgYXJlIHNhbGFtYW5kZXJzLCBhbmQgc2NpZW50aXN0cyBzdHVkeSBtYW55IGRpZmZlcmVudCBraW5kcyBvZiBzYWxhbWFuZGVycy4iXX0sICJSVzExIjogeyJhbnN3ZXIiOiAiRCIsICJhY2NlcHQiOiBbXSwgImV4cGwiOiAiRCBsaW5rcyBoaWdoZXIgcGl0Y2ggZGlyZWN0bHkgdG8gbW9yZSB0cmFmZmljIG5vaXNlIHdoaWxlIGhvbGRpbmcgc3BlY2llcyBhbmQgY2l0eSBjb25zdGFudCwgd2hpY2ggaXMgZXhhY3RseSB0aGUgbWVjaGFuaXNtIHRoZSBoeXBvdGhlc2lzIHByb3Bvc2VzLiBUaGUgb3RoZXIgZmluZGluZ3MgZG9uJ3QgaW52b2x2ZSBwaXRjaCBhbmQgbm9pc2UuIiwgImRvbWFpbiI6ICJJbmZvcm1hdGlvbiBhbmQgSWRlYXMiLCAic2tpbGwiOiAiQ29tbWFuZCBvZiBldmlkZW5jZSAodGV4dHVhbCkiLCAib3B0VGV4dCI6IFsiRm9yZXN0IHNvbmdiaXJkcyBzaW5nIG1vcmUgb2Z0ZW4gaW4gdGhlIG1vcm5pbmcgdGhhbiBpbiB0aGUgZXZlbmluZy4iLCAiQ2l0eS1kd2VsbGluZyBzb25nYmlyZHMgaGF2ZSBsYXJnZXIgYXZlcmFnZSBib2R5IHNpemVzIHRoYW4gZm9yZXN0IHNvbmdiaXJkcy4iLCAiU29tZSBzb25nYmlyZCBzcGVjaWVzIGFyZSBmb3VuZCBvbmx5IGluIGZvcmVzdHMuIiwgIldpdGhpbiBhIHNpbmdsZSBjaXR5LCBzb25nYmlyZHMgbmVhciBidXN5IGhpZ2h3YXlzIHNpbmcgYXQgaGlnaGVyIHBpdGNoZXMgdGhhbiBzb25nYmlyZHMgb2YgdGhlIHNhbWUgc3BlY2llcyBpbiBxdWlldCBwYXJrcy4iXX0sICJSVzEyIjogeyJhbnN3ZXIiOiAiQyIsICJhY2NlcHQiOiBbXSwgImV4cGwiOiAiVGhlIG9wZW5pbmcgcGhyYXNlIGRlc2NyaWJlcyB3aG9ldmVyIHNwZW50IHRocmVlIHllYXJzIHBob3RvZ3JhcGhpbmcsIHNvIHRoZSBwaG90b2dyYXBoZXIgbXVzdCBjb21lIHJpZ2h0IGFmdGVyIHRoZSBjb21tYS4gSW4gdGhlIG90aGVyIGNob2ljZXMsIHRoZSBleGhpYml0IG9yIHRoZSBpbWFnZXMgYXBwZWFyIHRvIGhhdmUgZG9uZSB0aGUgcGhvdG9ncmFwaGluZyAoYSBkYW5nbGluZyBtb2RpZmllcikuIiwgImRvbWFpbiI6ICJTdGFuZGFyZCBFbmdsaXNoIENvbnZlbnRpb25zIiwgInNraWxsIjogIk1vZGlmaWVyIHBsYWNlbWVudCIsICJvcHRUZXh0IjogWyJ0aGUgcGhvdG9ncmFwaGVyJ3MgbmV3IGV4aGliaXQgZmVhdHVyZXMgaW1hZ2VzIG9mIHJlZWYgZmlzaC4iLCAiaW1hZ2VzIG9mIHJlZWYgZmlzaCBhcmUgZmVhdHVyZWQgaW4gdGhlIHBob3RvZ3JhcGhlcidzIG5ldyBleGhpYml0LiIsICJ0aGUgcGhvdG9ncmFwaGVyIGhhcyBmaWxsZWQgaGVyIG5ldyBleGhpYml0IHdpdGggaW1hZ2VzIG9mIHJlZWYgZmlzaC4iLCAidGhlIG5ldyBleGhpYml0IGJ5IHRoZSBwaG90b2dyYXBoZXIgZmVhdHVyZXMgaW1hZ2VzIG9mIHJlZWYgZmlzaC4iXX0sICJSVzEzIjogeyJhbnN3ZXIiOiAiQiIsICJhY2NlcHQiOiBbXSwgImV4cGwiOiAiJmxkcXVvO0hvd2V2ZXImcmRxdW87IHNpZ25hbHMgdGhlIGV2aWRlbmNlIHVuZGVyY3V0cyBsb2NhbCBmYXJtaW5nOiBzb3V0aGVybi1zdHlsZSBwb3R0ZXJ5IHBsdXMgbm8gZmFybWluZyB0b29scyBwb2ludHMgdG8gdHJhZGUuIEMgaXMgdW5zdXBwb3J0ZWQgc3BlY3VsYXRpb24sIGFuZCBBIGFuZCBEIGFyZW4ndCBzdWdnZXN0ZWQgYnkgdGhlIGV2aWRlbmNlLiIsICJkb21haW4iOiAiSW5mb3JtYXRpb24gYW5kIElkZWFzIiwgInNraWxsIjogIkluZmVyZW5jZXMiLCAib3B0VGV4dCI6IFsidGhlIHBlb3BsZSBhdCB0aGUgc2l0ZSB3ZXJlIHRoZSBmaXJzdCBpbiBFdXJvcGUgdG8gZ3JvdyBiYXJsZXkuIiwgInRoZSBiYXJsZXkgbWF5IGhhdmUgYmVlbiBvYnRhaW5lZCB0aHJvdWdoIHRyYWRlIHdpdGggc291dGhlcm4gZmFybWluZyBjb21tdW5pdGllcyByYXRoZXIgdGhhbiBncm93biBsb2NhbGx5LiIsICJmYXJtaW5nIHRvb2xzIGluIHRoZSByZWdpb24gd2VyZSBtYWRlIG9mIG1hdGVyaWFscyB0aGF0IGRvIG5vdCBzdXJ2aXZlIG92ZXIgdGltZS4iLCAic291dGhlcm4gZmFybWluZyBjb21tdW5pdGllcyBsZWFybmVkIHRvIG1ha2UgcG90dGVyeSBmcm9tIHBlb3BsZSBpbiBub3J0aGVybiBFdXJvcGUuIl19LCAiUlcxNCI6IHsiYW5zd2VyIjogIkEiLCAiYWNjZXB0IjogW10sICJleHBsIjogIlRleHQgMSBhc3N1bWVzIGZld2VyIGhvdXJzIG1lYW5zIGxlc3Mgb3V0cHV0OyBUZXh0IDIncyByZXNlYXJjaGVycyBmb3VuZCBvdXRwdXQgaGVsZCBzdGVhZHkgYW5kIGV4cGxhaW4gd2h5IChlZmZpY2llbmN5LCBmZXdlciBtZWV0aW5ncyksIHNvIHRoZXknZCBzYXkgdGhlIHZpZXcgbWlzc2VzIGhvdyBob3VycyBjYW4gYmUgdXNlZCBiZXR0ZXIuIEIgY29udHJhZGljdHMgdGhlaXIgZmluZGluZ3MuIiwgImRvbWFpbiI6ICJDcmFmdCBhbmQgU3RydWN0dXJlIiwgInNraWxsIjogIkNyb3NzLXRleHQgY29ubmVjdGlvbnMiLCAib3B0VGV4dCI6IFsiVGhleSB3b3VsZCBhcmd1ZSB0aGF0IHRoZSB2aWV3IG92ZXJsb29rcyB3YXlzIGluIHdoaWNoIGZld2VyIGhvdXJzIGNhbiBiZSB1c2VkIG1vcmUgcHJvZHVjdGl2ZWx5LiIsICJUaGV5IHdvdWxkIGFncmVlIHRoYXQgYSBmb3VyLWRheSB3ZWVrIHJlZHVjZXMgb3V0cHV0IGJ1dCBhcmd1ZSB0aGF0IGhpZ2hlciBzYXRpc2ZhY3Rpb24ganVzdGlmaWVzIHRoZSBjaGFuZ2UuIiwgIlRoZXkgd291bGQgYXJndWUgdGhhdCBlY29ub21pc3RzIHNob3VsZCBmb2N1cyBvbiBlbXBsb3llZSBzYXRpc2ZhY3Rpb24gaW5zdGVhZCBvZiBvdXRwdXQuIiwgIlRoZXkgd291bGQgY2xhaW0gdGhhdCBhIGZvdXItZGF5IHdlZWsgYmVuZWZpdHMgb25seSBjb21wYW5pZXMgdGhhdCBob2xkIG1hbnkgbWVldGluZ3MuIl19LCAiTTEiOiB7ImFuc3dlciI6ICJEIiwgImFjY2VwdCI6IFtdLCAiZXhwbCI6ICIzPGk+eDwvaT4gJm1pbnVzOyA1ICZndDsgMTYgZ2l2ZXMgMzxpPng8L2k+ICZndDsgMjEsIHNvIDxpPng8L2k+ICZndDsgNy4gT25seSA4IGlzIGdyZWF0ZXIgdGhhbiA3ICg3IGl0c2VsZiBtYWtlcyB0aGUgdHdvIHNpZGVzIGVxdWFsLCBzbyBpdCBkb2Vzbid0IHNhdGlzZnkgYSBzdHJpY3QgJmxkcXVvOyZndDsmcmRxdW87KS4iLCAiZG9tYWluIjogIkFsZ2VicmEiLCAic2tpbGwiOiAiTGluZWFyIGluZXF1YWxpdGllcyIsICJvcHRUZXh0IjogWyI1IiwgIjYiLCAiNyIsICI4Il19LCAiTTIiOiB7ImFuc3dlciI6ICJCIiwgImFjY2VwdCI6IFtdLCAiZXhwbCI6ICJTYWxlIHByaWNlOiA4MCAmdGltZXM7IDAuNzUgPSAkNjAuIFdpdGggdGF4OiA2MCAmdGltZXM7IDEuMDggPSAkNjQuODAuICgkNjYuNDAgd3JvbmdseSBjb21iaW5lcyB0aGUgcGVyY2VudHMgYXMgODAgJnRpbWVzOyAwLjgzLikiLCAiZG9tYWluIjogIlByb2JsZW0tU29sdmluZyBhbmQgRGF0YSBBbmFseXNpcyIsICJza2lsbCI6ICJQZXJjZW50YWdlcyIsICJvcHRUZXh0IjogWyIkNjAuMDAiLCAiJDY0LjgwIiwgIiQ2Ni40MCIsICIkODYuNDAiXX0sICJNMyI6IHsiYW5zd2VyIjogIjQ1IiwgImFjY2VwdCI6IFs0NV0sICJleHBsIjogIlRoZSB3YXRlciBmb3JtcyBhIGJveCA1MCAmdGltZXM7IDMwICZ0aW1lczsgMzAgPSA0NSwwMDAgY20mc3VwMzsgKHVzZSB0aGUgd2F0ZXIgaGVpZ2h0LCBub3QgdGhlIHRhbmsgaGVpZ2h0KS4gNDUsMDAwICZkaXZpZGU7IDEsMDAwID0gNDUgbGl0ZXJzLiIsICJkb21haW4iOiAiR2VvbWV0cnkgYW5kIFRyaWdvbm9tZXRyeSIsICJza2lsbCI6ICJWb2x1bWUgKHdpdGggdW5pdCBjb252ZXJzaW9uKSIsICJvcHRUZXh0IjogW119LCAiTTQiOiB7ImFuc3dlciI6ICJDIiwgImFjY2VwdCI6IFtdLCAiZXhwbCI6ICI2MCBpcyB0aGUgY29uc3RhbnQgdGVybSAodGhlIHZhbHVlIG9mIDxpPkM8L2k+IHdoZW4gPGk+aDwvaT4gPSAwKSwgc28gaXQncyBhIGZsYXQgZmVlLiBUaGUgaG91cmx5IHJhdGUgaXMgNDUsIGFuZCBhIDEtaG91ciBqb2IgY29zdHMgNDUgKyA2MCA9ICQxMDUuIiwgImRvbWFpbiI6ICJBbGdlYnJhIiwgInNraWxsIjogIkxpbmVhciBmdW5jdGlvbnMgKGludGVycHJldGluZykiLCAib3B0VGV4dCI6IFsiVGhlIHBsdW1iZXIgY2hhcmdlcyAkNjAgcGVyIGhvdXIuIiwgIlRoZSB0b3RhbCBjaGFyZ2UgZm9yIGEgMS1ob3VyIGpvYiBpcyAkNjAuIiwgIlRoZSBwbHVtYmVyIGNoYXJnZXMgYSBmaXhlZCAkNjAgZm9yIGVhY2ggam9iLCByZWdhcmRsZXNzIG9mIGhvdyBtYW55IGhvdXJzIGl0IGxhc3RzLiIsICJUaGUgcGx1bWJlciB3b3JrcyA2MCBob3VycyBwZXIgd2Vlay4iXX0sICJNNSI6IHsiYW5zd2VyIjogIkEiLCAiYWNjZXB0IjogW10sICJleHBsIjogIkRpc3RyaWJ1dGU6IDI8aT54PC9pPiZtaWRkb3Q7PGk+eDwvaT4gPSAyPGk+eDwvaT48c3VwPjI8L3N1cD4sIDI8aT54PC9pPiZtaWRkb3Q7KCZtaW51czs1KSA9ICZtaW51czsxMDxpPng8L2k+LCAzJm1pZGRvdDs8aT54PC9pPiA9IDM8aT54PC9pPiwgMyZtaWRkb3Q7KCZtaW51czs1KSA9ICZtaW51czsxNS4gQ29tYmluaW5nICZtaW51czsxMDxpPng8L2k+ICsgMzxpPng8L2k+IGdpdmVzIDI8aT54PC9pPjxzdXA+Mjwvc3VwPiAmbWludXM7IDc8aT54PC9pPiAmbWludXM7IDE1LiIsICJkb21haW4iOiAiQWR2YW5jZWQgTWF0aCIsICJza2lsbCI6ICJFcXVpdmFsZW50IGV4cHJlc3Npb25zIiwgIm9wdFRleHQiOiBbIjJ4MiBcdTIyMTIgN3ggXHUyMjEyIDE1IiwgIjJ4MiArIDd4IFx1MjIxMiAxNSIsICIyeDIgXHUyMjEyIDEzeCBcdTIyMTIgMTUiLCAiMngyIFx1MjIxMiAxNSJdfSwgIk02IjogeyJhbnN3ZXIiOiAiMS8yIiwgImFjY2VwdCI6IFswLjVdLCAiZXhwbCI6ICJSZXN0cmljdCB0byBHcmFkZSAxMCBvbmx5OiAxNSBvZiB0aGUgMzAgR3JhZGUgMTAgc3R1ZGVudHMgcHJlZmVyIFJvYm90aWNzLCBzbyB0aGUgcHJvYmFiaWxpdHkgaXMgMTUvMzAgPSAxLzIgKDAuNSkuIFVzaW5nIDcwIG9yIDI3IGFzIHRoZSBkZW5vbWluYXRvciBpcyB0aGUgY29tbW9uIG1pc3Rha2UuIiwgImRvbWFpbiI6ICJQcm9ibGVtLVNvbHZpbmcgYW5kIERhdGEgQW5hbHlzaXMiLCAic2tpbGwiOiAiUHJvYmFiaWxpdHkgZnJvbSBhIHR3by13YXkgdGFibGUiLCAib3B0VGV4dCI6IFtdfSwgIk03IjogeyJhbnN3ZXIiOiAiMTUiLCAiYWNjZXB0IjogWzE1XSwgImV4cGwiOiAiTGV0IDxpPmE8L2k+ID0gYWR1bHQgYW5kIDxpPnM8L2k+ID0gc3R1ZGVudCB0aWNrZXRzOiA8aT5hPC9pPiArIDxpPnM8L2k+ID0gMzAgYW5kIDEyPGk+YTwvaT4gKyA3PGk+czwvaT4gPSAyODUuIFN1YnN0aXR1dGluZyA8aT5zPC9pPiA9IDMwICZtaW51czsgPGk+YTwvaT46IDEyPGk+YTwvaT4gKyAyMTAgJm1pbnVzOyA3PGk+YTwvaT4gPSAyODUsIHNvIDU8aT5hPC9pPiA9IDc1IGFuZCA8aT5hPC9pPiA9IDE1LiIsICJkb21haW4iOiAiQWxnZWJyYSIsICJza2lsbCI6ICJTeXN0ZW1zIG9mIGxpbmVhciBlcXVhdGlvbnMiLCAib3B0VGV4dCI6IFtdfSwgIk04IjogeyJhbnN3ZXIiOiAiQyIsICJhY2NlcHQiOiBbXSwgImV4cGwiOiAiRG91YmxpbmcgbWVhbnMgYmFzZSAyLCBhbmQgb25lIGRvdWJsaW5nIHBlciAzIGhvdXJzIG1lYW5zIHRoZSBleHBvbmVudCBpcyA8aT50PC9pPi8zLiBDaGVjazogPGk+dDwvaT4gPSAzIGdpdmVzIDUwMCAmbWlkZG90OyAyID0gMSwwMDAuIiwgImRvbWFpbiI6ICJBZHZhbmNlZCBNYXRoIiwgInNraWxsIjogIkV4cG9uZW50aWFsIGZ1bmN0aW9ucyIsICJvcHRUZXh0IjogWyJQKHQpID0gNTAwIFx1MDBiNyAyM3QiLCAiUCh0KSA9IDUwMCBcdTAwYjcgM3QvMiIsICJQKHQpID0gNTAwIFx1MDBiNyAydC8zIiwgIlAodCkgPSA1MDAgKyAydC8zIl19LCAiTTkiOiB7ImFuc3dlciI6ICI2OSIsICJhY2NlcHQiOiBbNjldLCAiZXhwbCI6ICJUb3RhbCBvZiA2IHNjb3JlczogNiAmdGltZXM7IDg0ID0gNTA0LiBUb3RhbCBvZiB0aGUgb3RoZXIgNTogNSAmdGltZXM7IDg3ID0gNDM1LiBMb3dlc3Qgc2NvcmUgPSA1MDQgJm1pbnVzOyA0MzUgPSA2OS4iLCAiZG9tYWluIjogIlByb2JsZW0tU29sdmluZyBhbmQgRGF0YSBBbmFseXNpcyIsICJza2lsbCI6ICJNZWFuIiwgIm9wdFRleHQiOiBbXX0sICJNMTAiOiB7ImFuc3dlciI6ICJEIiwgImFjY2VwdCI6IFtdLCAiZXhwbCI6ICJzaW4gPGk+QTwvaT4gPSBvcHBvc2l0ZS9oeXBvdGVudXNlLCBzbyA8aT5CQzwvaT4gPSA1IGFuZCA8aT5BQjwvaT4gPSAxMywgd2hpY2ggbWFrZXMgPGk+QUM8L2k+ID0gJnJhZGljOygxMyZzdXAyOyAmbWludXM7IDUmc3VwMjspID0gMTIuIEZyb20gYW5nbGUgPGk+QjwvaT4sIHRhbiA8aT5CPC9pPiA9IG9wcG9zaXRlL2FkamFjZW50ID0gPGk+QUM8L2k+LzxpPkJDPC9pPiA9IDEyLzUuIiwgImRvbWFpbiI6ICJHZW9tZXRyeSBhbmQgVHJpZ29ub21ldHJ5IiwgInNraWxsIjogIlJpZ2h0IHRyaWFuZ2xlIHRyaWdvbm9tZXRyeSIsICJvcHRUZXh0IjogWyI1LzEzIiwgIjUvMTIiLCAiMTIvMTMiLCAiMTIvNSJdfSwgIk0xMSI6IHsiYW5zd2VyIjogIjEyIiwgImFjY2VwdCI6IFsxMl0sICJleHBsIjogIkV4YWN0bHkgb25lIHJlYWwgc29sdXRpb24gbWVhbnMgdGhlIGRpc2NyaW1pbmFudCBpcyB6ZXJvOiA8aT5iPC9pPiZzdXAyOyAmbWludXM7IDQoMSkoMzYpID0gMCwgc28gPGk+YjwvaT4mc3VwMjsgPSAxNDQgYW5kIDxpPmI8L2k+ID0gMTIgKHBvc2l0aXZlKS4gQ2hlY2s6IDxpPng8L2k+JnN1cDI7ICsgMTI8aT54PC9pPiArIDM2ID0gKDxpPng8L2k+ICsgNikmc3VwMjsuIiwgImRvbWFpbiI6ICJBZHZhbmNlZCBNYXRoIiwgInNraWxsIjogIlF1YWRyYXRpY3MgKGRpc2NyaW1pbmFudCkiLCAib3B0VGV4dCI6IFtdfSwgIk0xMiI6IHsiYW5zd2VyIjogIkIiLCAiYWNjZXB0IjogW10sICJleHBsIjogIkNvbXBsZXRlIHRoZSBzcXVhcmU6ICg8aT54PC9pPiAmbWludXM7IDMpJnN1cDI7ICsgKDxpPnk8L2k+ICsgNCkmc3VwMjsgPSAxMSArIDkgKyAxNiA9IDM2LiBTbyA8aT5yPC9pPiZzdXAyOyA9IDM2IGFuZCB0aGUgcmFkaXVzIGlzIDYuIiwgImRvbWFpbiI6ICJHZW9tZXRyeSBhbmQgVHJpZ29ub21ldHJ5IiwgInNraWxsIjogIkNpcmNsZXMgKGVxdWF0aW9uIG9mIGEgY2lyY2xlKSIsICJvcHRUZXh0IjogWyJcdTIyMWExMSIsICI2IiwgIjExIiwgIjM2Il19fQ=="), c => c.charCodeAt(0))));
+const DOMAINS = [["Reading and Writing", "Information and Ideas"], ["Reading and Writing", "Craft and Structure"], ["Reading and Writing", "Expression of Ideas"], ["Reading and Writing", "Standard English Conventions"], ["Math", "Algebra"], ["Math", "Advanced Math"], ["Math", "Problem-Solving and Data Analysis"], ["Math", "Geometry and Trigonometry"]];
+const SECS = [{name:"Reading and Writing", short:"RW", minutes:16}, {name:"Math", short:"Math", minutes:16}];
+const STORE = "satDiag_v1";
+let st = {answers:{}, name:"", submitted:false, timers:{}};
+try { const s = JSON.parse(localStorage.getItem(STORE)); if (s) st = Object.assign(st, s); } catch(e) {}
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(st)); }catch(e){} }
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const label = q => (q.section==="Math" ? "Math" : "Reading & Writing") + " Q" + q.n;
+
+function parseNum(raw){
+  if (raw==null) return null;
+  let s = String(raw).trim().replace(/[\s,$]/g,"").replace(/[a-zA-Z%]+$/,"");
+  if (/^[+-]?(\d+\.?\d*|\.\d+)$/.test(s)) return parseFloat(s);
+  const m = s.match(/^([+-]?(?:\d+\.?\d*|\.\d+))\/([+-]?(?:\d+\.?\d*|\.\d+))$/);
+  if (m){ const d = parseFloat(m[2]); if (d===0) return null; return parseFloat(m[1])/d; }
+  return null;
+}
+function isCorrect(q, a){
+  const k = KEY[q.id];
+  if (a==null || a==="") return false;
+  if (q.type==="mc") return a===k.answer;
+  const v = parseNum(a); if (v===null) return false;
+  return k.accept.some(x => Math.abs(x - v) < 1e-6);
+}
+
+function render(){
+  for (const sec of SECS){
+    const host = document.getElementById("sec-"+sec.short);
+    QS.filter(q => q.section===sec.name).forEach(q => {
+      const div = document.createElement("div");
+      div.className = "card q"; div.id = "q-"+q.id;
+      let h = `<div class="qnum">Question ${q.n} of ${QS.filter(x=>x.section===q.section).length}${q.type==="grid"?" &middot; Student-produced response":""}</div>`;
+      if (q.passage) h += `<div class="passage tablewrap">${q.passage}</div>`;
+      h += `<div class="stem">${q.stem}</div>`;
+      if (q.type==="mc"){
+        h += `<div class="opts" role="radiogroup">` + q.options.map((o,i)=>{const L="ABCD"[i];
+          return `<label class="opt" data-l="${L}"><input type="radio" name="${q.id}" value="${L}"><span class="letter">${L}</span><span class="otext">${o}</span></label>`}).join("") + `</div>`;
+      } else {
+        h += `<div class="grid-in"><input type="text" inputmode="decimal" autocomplete="off" name="${q.id}" placeholder="Your answer" aria-label="Answer for ${label(q)}"><span class="hint">Enter a number, decimal, or fraction (e.g., 3.5 or 7/2).</span></div>`;
+      }
+      div.innerHTML = h; host.appendChild(div);
+    });
+  }
+  document.querySelectorAll(".opt input").forEach(inp => inp.addEventListener("change", e => {
+    if (st.submitted) return;
+    st.answers[inp.name] = inp.value; save(); syncSel(inp.name); progress();
+  }));
+  document.querySelectorAll(".grid-in input").forEach(inp => inp.addEventListener("input", () => {
+    if (st.submitted) return;
+    st.answers[inp.name] = inp.value; save(); progress();
+  }));
+  $("#studentName").addEventListener("input", e => { st.name = e.target.value; save(); });
+  restore();
+}
+function syncSel(id){
+  document.querySelectorAll(`#q-${id} .opt`).forEach(l => l.classList.toggle("sel", l.dataset.l===st.answers[id]));
+}
+function restore(){
+  $("#studentName").value = st.name || "";
+  for (const q of QS){
+    const a = st.answers[q.id]; if (a==null) continue;
+    if (q.type==="mc"){ const r = document.querySelector(`input[name="${q.id}"][value="${a}"]`); if (r){ r.checked = true; syncSel(q.id);} }
+    else document.querySelector(`input[name="${q.id}"]`).value = a;
+  }
+  progress();
+  if (st.submitted) showResults(false);
+}
+function answeredCount(){ return QS.filter(q => (st.answers[q.id]||"").toString().trim()!=="").length; }
+function progress(){ $("#prog").textContent = `Answered ${answeredCount()} of ${QS.length}`; }
+
+// ---- timers (warn only; never lock) ----
+let active = null, tick = null;
+function tState(k){ if (!st.timers[k]) st.timers[k] = {elapsed:0, running:false, startedAt:null}; return st.timers[k]; }
+function elapsed(k){ const t = tState(k); return t.elapsed + (t.running ? (Date.now()-t.startedAt)/1000 : 0); }
+function fmt(sec){ const neg = sec<0; sec = Math.abs(Math.round(sec)); return (neg?"+":"") + Math.floor(sec/60) + ":" + String(sec%60).padStart(2,"0"); }
+function startTimer(k){
+  for (const s of SECS) if (s.short!==k) pauseTimer(s.short);
+  const t = tState(k); if (!t.running){ t.running = true; t.startedAt = Date.now(); }
+  active = k; save(); $("#timerbar").classList.remove("hidden"); drawTimer();
+  if (!tick) tick = setInterval(drawTimer, 500);
+}
+function pauseTimer(k){ const t = tState(k); if (t.running){ t.elapsed += (Date.now()-t.startedAt)/1000; t.running=false; t.startedAt=null; save(); } }
+function drawTimer(){
+  if (!active) return;
+  const sec = SECS.find(s => s.short===active), t = tState(active);
+  const left = sec.minutes*60 - elapsed(active);
+  $("#tlab").textContent = (sec.short==="RW"?"Section 1: Reading and Writing":"Section 2: Math");
+  $("#tval").textContent = left>=0 ? fmt(left) : fmt(left);
+  const bar = $("#timerbar"); bar.classList.toggle("warn", left<=120 && left>0); bar.classList.toggle("over", left<=0);
+  $("#timermsg").textContent = left<=0 ? "Suggested time is up. Wrap up and move on (answers are not locked)." : (left<=120 ? "About 2 minutes left." : "");
+  $("#tpause").textContent = t.running ? "Pause" : "Resume";
+}
+function togglePause(){ if (!active) return; const t = tState(active); if (t.running) pauseTimer(active); else startTimer(active); drawTimer(); }
+
+// ---- scoring ----
+function score(){
+  const per = QS.map(q => ({q, a: st.answers[q.id] ?? "", ok: isCorrect(q, st.answers[q.id])}));
+  const dom = DOMAINS.map(([s,d]) => { const items = per.filter(p => KEY[p.q.id].domain===d);
+    const c = items.filter(p=>p.ok).length; return {section:s, domain:d, correct:c, total:items.length, pct: Math.round(100*c/items.length), ids: items.map(p=>label(p.q))}; });
+  const secs = SECS.map(s => { const items = per.filter(p=>p.q.section===s.name); return {name:s.name, correct:items.filter(p=>p.ok).length, total:items.length}; });
+  return {per, dom, secs, total: per.filter(p=>p.ok).length};
+}
+function submit(){
+  const un = QS.length - answeredCount();
+  if (un>0 && !confirm(`You have ${un} unanswered question${un>1?"s":""}. There's no penalty for guessing. Submit anyway?`)) return;
+  for (const s of SECS) pauseTimer(s.short);
+  st.submitted = true; st.submittedAt = new Date().toISOString(); save(); showResults(true);
+}
+function showResults(scroll){
+  const r = score();
+  document.body.classList.add("locked");
+  document.querySelectorAll("input[name]").forEach(i => { if (i.id!=="studentName") i.disabled = true; });
+  $("#submitBtn").disabled = true; $("#timerbar").classList.add("hidden"); if (tick){clearInterval(tick); tick=null;}
+  document.querySelectorAll(".startbtn").forEach(b=>b.disabled=true);
+  const prio = r.dom.filter(d => d.pct < 60);
+  let h = `<h2>Your results</h2><p class="sub">${st.name?esc(st.name)+" &middot; ":""}${new Date(st.submittedAt||Date.now()).toLocaleString()}</p>
+  <div class="big">${r.total} / ${QS.length} correct</div>
+  <p>${r.secs.map(s=>`<b>${s.name}:</b> ${s.correct} / ${s.total}`).join(" &nbsp;&middot;&nbsp; ")}</p>
+  <p class="note"><b>Informal diagnostic only.</b> This is a short practice check-in, not a predicted SAT score, and it can't be converted to the 400&ndash;1600 scale. Use it to see which skill areas need the most attention.</p>
+  <h3>Results by content domain</h3><div class="tablewrap"><table class="res" id="domtable"><thead><tr><th>Section</th><th>Domain</th><th>Correct</th><th>%</th><th>Status</th></tr></thead><tbody>` +
+  r.dom.map(d => `<tr class="${d.pct<60?"prio":""}"><td>${d.section==="Math"?"Math":"R&amp;W"}</td><td>${d.domain}</td><td class="num">${d.correct} / ${d.total}</td><td class="num">${d.pct}%</td><td>${d.pct<60?'<span class="tag p">Priority</span>':(d.pct>=80?'<span class="tag s">Strength</span>':'<span class="tag m">Developing</span>')}</td></tr>`).join("") +
+  `</tbody></table></div>
+  <p>${prio.length ? `<b>Priority areas (below 60%):</b> ${prio.map(d=>d.domain).join(", ")}. Start the study plan here.` : "No domain fell below 60%. Focus on the specific questions missed below."}</p>
+  <p class="hint">Each domain has only 2&ndash;5 questions, so one question can move a percentage a lot. Treat these as rough signals, and look at which specific skills were missed.</p>
+  <div class="row"><button class="btn" id="copyBtn">Copy results</button><button class="btn secondary" id="resetBtn">Start over</button></div>
+  <div id="copymsg" aria-live="polite"></div><textarea id="copyfallback" readonly></textarea>
+  <h3>Question-by-question review</h3>` +
+  r.per.map(p => { const k = KEY[p.q.id]; const given = p.a===""?"(no answer)":p.a;
+    return `<div class="rev ${p.ok?"ok":"bad"}"><div class="h"><span class="mark ${p.ok?"ok":"bad"}">${p.ok?"&#10003; Correct":"&#10007; Incorrect"}</span> &middot; ${label(p.q)}</div>
+    <div class="d">${k.domain} &middot; ${k.skill}</div>
+    <div>Your answer: <b>${esc(given)}</b> &nbsp; Correct answer: <b>${k.answer}</b></div>
+    <div>${k.expl}</div></div>`; }).join("");
+  const box = $("#results"); box.innerHTML = h; box.classList.remove("hidden");
+  // mark questions in place
+  for (const p of r.per){
+    const card = document.getElementById("q-"+p.q.id), k = KEY[p.q.id];
+    card.classList.add(p.ok?"r-ok":"r-bad");
+    if (p.q.type==="mc") card.querySelectorAll(".opt").forEach(l => { if (l.dataset.l===k.answer) l.classList.add("correct"); else if (l.dataset.l===p.a) l.classList.add("wrong"); });
+    if (!card.querySelector(".fb")){ const fb = document.createElement("div"); fb.className = "fb "+(p.ok?"ok":"bad");
+      fb.innerHTML = `<b>${p.ok?"Correct.":"Correct answer: "+k.answer+"."}</b> ${k.expl}`; card.appendChild(fb); }
+  }
+  $("#copyBtn").addEventListener("click", copyResults);
+  $("#resetBtn").addEventListener("click", () => { if (confirm("Clear all answers and start over?")){ try{localStorage.removeItem(STORE);}catch(e){} location.reload(); } });
+  if (scroll) box.scrollIntoView({behavior:"smooth"});
+}
+function summaryText(){
+  const r = score(), L = [];
+  L.push("SAT Baseline Diagnostic (informal) - Results");
+  if (st.name) L.push("Student: " + st.name);
+  L.push("Submitted: " + new Date(st.submittedAt||Date.now()).toLocaleString());
+  L.push("NOTE: Informal diagnostic only; not a predicted SAT score.");
+  L.push("");
+  L.push(`TOTAL: ${r.total}/${QS.length} correct`);
+  r.secs.forEach(s => { const k = s.name==="Math"?"Math":"RW"; const t = st.timers[k]; L.push(`${s.name}: ${s.correct}/${s.total}` + (t && t.elapsed>0 ? ` (time used ${fmt(t.elapsed)})` : "")); });
+  L.push(""); L.push("BY DOMAIN:");
+  r.dom.forEach(d => L.push(`- [${d.section==="Math"?"Math":"R&W"}] ${d.domain}: ${d.correct}/${d.total} (${d.pct}%)${d.pct<60?"  <-- PRIORITY":""}`));
+  const pr = r.dom.filter(d=>d.pct<60).map(d=>d.domain);
+  L.push("Priority domains (<60%): " + (pr.length?pr.join(", "):"none"));
+  L.push(""); L.push("BY QUESTION:");
+  r.per.forEach(p => { const k = KEY[p.q.id]; L.push(`${label(p.q)} | ${k.domain} - ${k.skill} | answered: ${p.a===""?"(blank)":p.a} | correct: ${k.answer} | ${p.ok?"CORRECT":"INCORRECT"}`); });
+  return L.join("\n");
+}
+function copyResults(){
+  const txt = summaryText(), msg = $("#copymsg"), ta = $("#copyfallback");
+  const fallback = () => { ta.value = txt; ta.style.display = "block"; ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch(e){}
+    msg.textContent = ok ? "Results copied to clipboard." : "Couldn't copy automatically. Select the text below and copy it."; };
+  if (navigator.clipboard && window.isSecureContext !== false){
+    navigator.clipboard.writeText(txt).then(() => { msg.textContent = "Results copied to clipboard."; ta.value = txt; }, fallback);
+  } else fallback();
+}
+window.__sat = {score, summaryText, parseNum};
+document.addEventListener("DOMContentLoaded", () => {
+  render();
+  document.querySelectorAll(".startbtn").forEach(b => b.addEventListener("click", () => { startTimer(b.dataset.k); }));
+  $("#tpause").addEventListener("click", togglePause);
+  $("#submitBtn").addEventListener("click", submit);
+  const run = SECS.find(s => st.timers[s.short] && st.timers[s.short].running);
+  if (run && !st.submitted){ active = run.short; $("#timerbar").classList.remove("hidden"); tick = setInterval(drawTimer, 500); drawTimer(); }
+});
+</script>
+</body></html>
