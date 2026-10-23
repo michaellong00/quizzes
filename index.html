@@ -27,7 +27,7 @@
 <script>
 // Add new quizzes here: [folder name, tab label]
 const QUIZZES = [
-  ["sat-diagnostic", "SAT: Baseline Diagnostic"],
+  ["sat", "SAT: Practice Test"],
   ["washington-and-foreign-affairs", "History: Washington & Foreign Affairs"],
   ["newtons-third-law", "Physics: Newton's Third Law"],
   ["newtons-laws", "Physics: Newton's Laws"]
@@ -37,7 +37,8 @@ QUIZZES.forEach(([id, label]) => {
   const a = document.createElement('a'); a.href = '#' + id; a.textContent = label; a.dataset.id = id; tabs.appendChild(a);
 });
 function show() {
-  const id = location.hash.slice(1);
+  let id = location.hash.slice(1);
+  if (id === 'sat-diagnostic') id = 'sat';
   const pick = QUIZZES.find(q => q[0] === id) ? id : QUIZZES[0][0];
   frame.src = pick + '/';
   tabs.querySelectorAll('a').forEach(a => {
