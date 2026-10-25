@@ -12,39 +12,79 @@
   header h1 { font-size:1.05rem; margin:0 0 8px; font-weight:600; }
   nav { display:flex; gap:4px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
   nav::-webkit-scrollbar { display:none; }
-  nav a { flex:0 0 auto; padding:10px 14px; color:#c9d3e8; text-decoration:none; font-size:.95rem; border-radius:8px 8px 0 0; white-space:nowrap; }
-  nav a:hover { color:#fff; }
-  nav a.active { background:#f4f6fb; color:#1d2433; font-weight:600; }
+  #subjects { gap:6px; padding-bottom:8px; }
+  #subjects a { flex:0 0 auto; padding:7px 14px; color:#c9d3e8; text-decoration:none; font-size:.95rem; font-weight:600; border-radius:999px; border:1px solid #3a4560; white-space:nowrap; }
+  #subjects a:hover { color:#fff; border-color:#6b7899; }
+  #subjects a.active { background:#2f6fed; border-color:#2f6fed; color:#fff; }
+  #tabs { background:#2a3347; margin:0 -16px; padding:6px 16px 0; }
+  #tabs a { flex:0 0 auto; padding:9px 14px; color:#c9d3e8; text-decoration:none; font-size:.92rem; border-radius:8px 8px 0 0; white-space:nowrap; }
+  #tabs a:hover { color:#fff; }
+  #tabs a.active { background:#f4f6fb; color:#1d2433; font-weight:600; }
+  #tabs .empty { color:#9aa6c0; font-size:.9rem; padding:9px 2px 11px; }
   iframe { flex:1; width:100%; border:0; background:#f4f6fb; }
+  .none { flex:1; display:none; align-items:center; justify-content:center; color:#5b6475; font-size:1.05rem; padding:24px; text-align:center; }
 </style>
 </head>
 <body>
 <header>
   <h1>Billy's Practice Quizzes</h1>
+  <nav id="subjects"></nav>
   <nav id="tabs"></nav>
 </header>
 <iframe id="frame" title="Quiz"></iframe>
+<div class="none" id="none">No quizzes yet for this subject. Check back soon!</div>
 <script>
-// Add new quizzes here: [folder name, tab label]
-const QUIZZES = [
-  ["sat", "SAT: Practice Test"],
-  ["washington-and-foreign-affairs", "History: Washington & Foreign Affairs"],
-  ["newtons-third-law", "Physics: Newton's Third Law"],
-  ["newtons-laws", "Physics: Newton's Laws"]
+// Add new items here: [hash id, path (folder/ or file), tab label]. One line per item.
+const SUBJECTS = [
+  { name: "SAT", items: [
+    ["sat", "sat/", "SAT Practice Test"]
+  ]},
+  { name: "History", items: [
+    ["module5-new-nation", "module5-new-nation/", "Module 5: A New Nation (Quiz)"],
+    ["module5-answer-key", "module5-new-nation/answer-key.html", "Module 5: Answer Key"],
+    ["module5-study-guide", "module5-new-nation/study-guide-answers.html", "Module 5: Study Guide (Answers)"],
+    ["washington-and-foreign-affairs", "washington-and-foreign-affairs/", "Washington & Foreign Affairs"]
+  ]},
+  { name: "Math", items: [] },
+  { name: "Science", items: [
+    ["newtons-third-law", "newtons-third-law/", "Physics: Newton's Third Law"],
+    ["newtons-laws", "newtons-laws/", "Physics: Newton's Laws"]
+  ]}
 ];
-const tabs = document.getElementById('tabs'), frame = document.getElementById('frame');
-QUIZZES.forEach(([id, label]) => {
-  const a = document.createElement('a'); a.href = '#' + id; a.textContent = label; a.dataset.id = id; tabs.appendChild(a);
+const ALIASES = { "sat-diagnostic": "sat" };
+const slug = s => 'subject-' + s.toLowerCase();
+const subjectsNav = document.getElementById('subjects'), tabs = document.getElementById('tabs');
+const frame = document.getElementById('frame'), none = document.getElementById('none');
+SUBJECTS.forEach(s => {
+  const a = document.createElement('a'); a.href = '#' + (s.items.length ? s.items[0][0] : slug(s.name));
+  a.textContent = s.name; a.dataset.name = s.name; subjectsNav.appendChild(a);
 });
+function find(id) {
+  id = ALIASES[id] || id;
+  for (const s of SUBJECTS) {
+    if (slug(s.name) === id) return { subject: s, item: s.items[0] || null };
+    const item = s.items.find(it => it[0] === id);
+    if (item) return { subject: s, item };
+  }
+  return { subject: SUBJECTS[0], item: SUBJECTS[0].items[0] };
+}
 function show() {
-  let id = location.hash.slice(1);
-  if (id === 'sat-diagnostic') id = 'sat';
-  const pick = QUIZZES.find(q => q[0] === id) ? id : QUIZZES[0][0];
-  frame.src = pick + '/';
-  tabs.querySelectorAll('a').forEach(a => {
-    a.classList.toggle('active', a.dataset.id === pick);
-    if (a.dataset.id === pick) a.scrollIntoView({inline:'nearest', block:'nearest'});
+  const { subject, item } = find(location.hash.slice(1));
+  subjectsNav.querySelectorAll('a').forEach(a => a.classList.toggle('active', a.dataset.name === subject.name));
+  tabs.innerHTML = '';
+  subject.items.forEach(([id, , label]) => {
+    const a = document.createElement('a'); a.href = '#' + id; a.textContent = label;
+    if (item && id === item[0]) a.className = 'active';
+    tabs.appendChild(a);
   });
+  if (!subject.items.length) tabs.innerHTML = '<span class="empty">No quizzes yet</span>';
+  if (item) {
+    if (frame.getAttribute('src') !== item[1]) frame.setAttribute('src', item[1]);
+    frame.style.display = ''; none.style.display = 'none';
+    const act = tabs.querySelector('a.active'); if (act) act.scrollIntoView({inline:'nearest', block:'nearest'});
+  } else {
+    frame.removeAttribute('src'); frame.style.display = 'none'; none.style.display = 'flex';
+  }
 }
 window.addEventListener('hashchange', show);
 show();

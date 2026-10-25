@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 5: A New Nation – Practice Quiz</title>
+<style>
+  :root { --bg:#f4f6fb; --card:#fff; --ink:#1d2433; --muted:#5b6475; --accent:#2f6fed; --good:#1f9d55; --bad:#d64545; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); line-height:1.5; }
+  main { max-width:680px; margin:0 auto; padding:20px 16px 40px; }
+  h1 { font-size:1.5rem; margin:0 0 4px; }
+  .sub { color:var(--muted); margin:0 0 16px; font-size:.95rem; }
+  .bar { height:8px; background:#dde3ef; border-radius:4px; overflow:hidden; margin-bottom:16px; }
+  .bar > div { height:100%; width:0; background:var(--accent); transition:width .3s; }
+  .card { background:var(--card); border-radius:14px; padding:20px; box-shadow:0 2px 10px rgba(0,0,0,.06); }
+  .qnum { color:var(--muted); font-size:.85rem; font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
+  .q { font-size:1.15rem; font-weight:600; margin:6px 0 16px; }
+  .opt { display:block; width:100%; text-align:left; padding:14px 16px; margin:0 0 10px; font-size:1rem; border:2px solid #d5dbe7; border-radius:10px; background:#fff; color:var(--ink); cursor:pointer; min-height:48px; }
+  .opt:hover:not(:disabled) { border-color:var(--accent); }
+  .opt:disabled { cursor:default; }
+  .opt.correct { border-color:var(--good); background:#e8f7ee; }
+  .opt.wrong { border-color:var(--bad); background:#fdeaea; }
+  .fb { margin-top:6px; padding:12px 14px; border-radius:10px; font-size:.97rem; display:none; }
+  .fb.good { display:block; background:#e8f7ee; border-left:4px solid var(--good); }
+  .fb.bad { display:block; background:#fdeaea; border-left:4px solid var(--bad); }
+  .btn { display:inline-block; margin-top:16px; padding:12px 22px; font-size:1rem; font-weight:600; border:none; border-radius:10px; background:var(--accent); color:#fff; cursor:pointer; min-height:48px; }
+  .btn[hidden] { display:none; }
+  .score { font-size:2.4rem; font-weight:700; margin:8px 0; }
+  .review { margin-top:16px; padding-left:20px; }
+  .review li { margin-bottom:8px; }
+  .ok { color:var(--good); font-weight:600; } .no { color:var(--bad); font-weight:600; }
+  .grade { display:inline-block; font-size:1.6rem; font-weight:700; padding:4px 14px; border-radius:10px; background:#eef3ff; color:var(--accent); margin-bottom:6px; }
+  .missed { margin-top:16px; padding:14px 16px; background:#fff7e6; border-left:4px solid #e0a100; border-radius:10px; }
+  .missed h3 { margin:0 0 8px; font-size:1.05rem; }
+  .missed li { margin-bottom:8px; }
+  .foot { text-align:center; margin-top:18px; font-size:.9rem; color:var(--muted); }
+  .foot a { color:var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Module 5: A New Nation</h1>
+  <p class="sub"><span id="count"></span> questions · Pick an answer to see if you're right and why.</p>
+  <div class="bar"><div id="progress"></div></div>
+  <div class="card" id="quiz"></div>
+  <p class="foot"><a href="answer-key.html">Answer key</a> · <a href="study-guide-answers.html">Study guide answers</a></p>
+</main>
+<script src="questions.js"></script>
+<script>
+document.getElementById('count').textContent = QUESTIONS.length;
+let i = 0, score = 0, answers = [], picks = [];
+const quiz = document.getElementById('quiz');
+const progress = document.getElementById('progress');
+const LETTERS = ['A','B','C','D'];
+const SCALE = [[94,'A'],[90,'A-'],[87,'B+'],[84,'B'],[80,'B-'],[77,'C+'],[74,'C'],[70,'C-'],[67,'D+'],[64,'D'],[60,'D-'],[0,'F']];
+function letterGrade(pct) { return SCALE.find(s => pct >= s[0])[1]; }
+
+function render() {
+  progress.style.width = (i / QUESTIONS.length * 100) + '%';
+  const item = QUESTIONS[i];
+  quiz.innerHTML =
+    '<div class="qnum">Question ' + (i+1) + ' of ' + QUESTIONS.length + '</div>' +
+    '<div class="q">' + item.q + '</div>' +
+    item.o.map((t, k) => '<button class="opt" data-k="' + k + '">' + LETTERS[k] + '. ' + t + '</button>').join('') +
+    '<div class="fb" id="fb"></div>' +
+    '<button class="btn" id="next" hidden>' + (i === QUESTIONS.length - 1 ? 'See my score' : 'Next question') + '</button>';
+  quiz.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => choose(+b.dataset.k)));
+  document.getElementById('next').addEventListener('click', () => { i++; i < QUESTIONS.length ? render() : finish(); });
+}
+
+function choose(k) {
+  const item = QUESTIONS[i], right = k === item.a;
+  if (right) score++;
+  answers.push(right); picks.push(k);
+  const opts = quiz.querySelectorAll('.opt');
+  opts.forEach(b => b.disabled = true);
+  opts[item.a].classList.add('correct');
+  if (!right) opts[k].classList.add('wrong');
+  const fb = document.getElementById('fb');
+  fb.className = 'fb ' + (right ? 'good' : 'bad');
+  fb.innerHTML = '<strong>' + (right ? 'Correct!' : 'Not quite. The answer is ' + LETTERS[item.a] + '.') + '</strong> ' + item.e;
+  const next = document.getElementById('next');
+  next.hidden = false; next.focus();
+}
+
+function finish() {
+  progress.style.width = '100%';
+  const pct = Math.round(score / QUESTIONS.length * 100);
+  const grade = letterGrade(pct);
+  const msg = pct >= 90 ? 'Excellent work!' : pct >= 70 ? 'Nice job. Review the ones you missed.' : 'Keep practicing. Go back over the explanations and try again.';
+  const missed = QUESTIONS.map((q, n) => ({q, n})).filter(x => !answers[x.n]);
+  quiz.innerHTML =
+    '<div class="qnum">Overall grade</div>' +
+    '<div class="score" id="score">' + score + ' / ' + QUESTIONS.length + ' (' + pct + '%)</div>' +
+    '<div class="grade" id="grade">Grade: ' + grade + '</div>' +
+    '<p>' + msg + '</p>' +
+    (missed.length ? '<div class="missed"><h3>Questions missed (' + missed.length + ')</h3><ol>' +
+      missed.map(x => '<li value="' + (x.n+1) + '">' + x.q.q + '<br><span class="no">Your answer: ' + LETTERS[picks[x.n]] + '. ' + x.q.o[picks[x.n]] + '</span><br><span class="ok">Correct: ' + LETTERS[x.q.a] + '. ' + x.q.o[x.q.a] + '</span></li>').join('') +
+      '</ol></div>' : '<p class="ok">No questions missed. Perfect score!</p>') +
+    '<ol class="review">' + QUESTIONS.map((q, n) => '<li><span class="' + (answers[n] ? 'ok">✓' : 'no">✗') + '</span> ' + q.q + '</li>').join('') + '</ol>' +
+    '<button class="btn" id="retry">Retry quiz</button>' +
+    '<p class="foot"><a href="answer-key.html">Answer key</a></p>';
+  document.getElementById('retry').addEventListener('click', () => { i = 0; score = 0; answers = []; picks = []; render(); window.scrollTo(0,0); });
+}
+
+render();
+</script>
+</body>
+</html>
